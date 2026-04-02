@@ -1,0 +1,105 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           Int               @id @default(autoincrement())
+  email        String            @unique
+  username     String            @unique
+  passwordHash String            @map("password_hash")
+  avatarUrl    String?           @map("avatar_url")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  favorites Favorite[]
+  progress  ReadingProgress[]
+  comments  Comment[]
+  ratings   Rating[]
+
+  @@map("users")
+}
+
+model Book {
+  id            Int               @id @default(autoincrement())
+  title         String
+  author        String
+  description   String?
+  coverUrl      String?           @map("cover_url")
+  genre         String
+  content       String
+  pageCount     Int               @default(0) @map("page_count")
+  publishedYear Int?              @map("published_year")
+  avgRating     Float             @default(0) @map("avg_rating")
+  ratingsCount  Int               @default(0) @map("ratings_count")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  favorites Favorite[]
+  progress  ReadingProgress[]
+  comments  Comment[]
+  ratings   Rating[]
+
+  @@index([genre])
+  @@index([title])
+  @@index([author])
+  @@map("books")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@map("favorites")
+}
+
+model ReadingProgress {
+  id             Int      @id @default(autoincrement())
+  userId         Int      @map("user_id")
+  bookId         Int      @map("book_id")
+  currentPage    Int      @default(0) @map("current_page")
+  scrollPosition Float    @default(0) @map("scroll_position")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@map("reading_progress")
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  text      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+  @@map("comments")
+}
+
+model Rating {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  value     Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, bookId])
+  @@map("ratings")
+}
