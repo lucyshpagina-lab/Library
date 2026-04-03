@@ -62,6 +62,7 @@ jobs:
       - name: 🗄️ Setup database
         run: |
           cd server
+          npx prisma generate
           npx prisma migrate deploy --config prisma/prisma.config.ts
           cd ..
           npx tsx server/prisma/seed.ts
