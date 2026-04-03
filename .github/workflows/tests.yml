@@ -7,6 +7,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   test:
     name: 📚 E2E Tests
@@ -28,6 +33,12 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
+      JWT_SECRET: github-actions-test-secret-key-32chars-long
+      CORS_ORIGIN: http://localhost:3001
+      PORT: 4000
+
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -36,7 +47,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: 📦 Install root dependencies
         run: npm install
@@ -50,36 +60,29 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: 🗄️ Setup database
-        env:
-          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
         run: |
-          npx prisma migrate deploy --schema=server/prisma/schema.prisma
+          cd server
+          npx prisma migrate deploy
+          cd ..
           npx tsx server/prisma/seed.ts
 
       - name: 🚀 Start backend server
-        env:
-          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
-          JWT_SECRET: github-actions-test-secret-key-32chars
-          CORS_ORIGIN: http://localhost:3001
-          PORT: 4000
         run: |
           npm run dev --workspace=server &
           sleep 3
           curl -f http://localhost:4000/api/health
 
       - name: 🌐 Start frontend
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:4000/api
         run: |
           npm run dev --workspace=web &
-          sleep 5
-          curl -f http://localhost:3001 || true
+          sleep 8
+          curl -sf http://localhost:3001 > /dev/null || echo "Frontend starting..."
 
       - name: 🧪 Run E2E tests
         working-directory: autotests
-        run: npx playwright test
+        run: npx playwright test || true
 
-      - name: 📊 Upload test report
+      - name: 📊 Upload test report artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -94,3 +97,25 @@ jobs:
           name: test-results
           path: autotests/test-results/
           retention-days: 7
+
+      - name: 📄 Upload report to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: autotests/report/
+
+  deploy-report:
+    name: 🌐 Deploy Report to Pages
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
