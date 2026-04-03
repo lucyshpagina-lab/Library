@@ -136,6 +136,37 @@ export async function rateBook(req: Request, res: Response, next: NextFunction) 
   }
 }
 
+export async function createBook(req: Request, res: Response, next: NextFunction) {
+  try {
+    const book = await prisma.book.create({
+      data: req.body,
+    });
+    res.status(201).json({ book });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteBook(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) throw new AppError(400, 'Invalid book ID');
+
+    const book = await prisma.book.findUnique({ where: { id } });
+    if (!book) throw new AppError(404, 'Book not found');
+
+    await prisma.comment.deleteMany({ where: { bookId: id } });
+    await prisma.rating.deleteMany({ where: { bookId: id } });
+    await prisma.readingProgress.deleteMany({ where: { bookId: id } });
+    await prisma.favorite.deleteMany({ where: { bookId: id } });
+    await prisma.book.delete({ where: { id } });
+
+    res.json({ message: 'Book deleted successfully' });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function getGenres(_req: Request, res: Response, next: NextFunction) {
   try {
     const genres = await prisma.book.findMany({
