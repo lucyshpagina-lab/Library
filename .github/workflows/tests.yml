@@ -62,25 +62,35 @@ jobs:
       - name: 🗄️ Setup database
         run: |
           cd server
-          npx prisma migrate deploy
+          npx prisma migrate deploy --config prisma/prisma.config.ts
           cd ..
           npx tsx server/prisma/seed.ts
 
       - name: 🚀 Start backend server
         run: |
           npm run dev --workspace=server &
-          sleep 3
+          sleep 4
           curl -f http://localhost:4000/api/health
 
       - name: 🌐 Start frontend
         run: |
           npm run dev --workspace=web &
-          sleep 8
-          curl -sf http://localhost:3001 > /dev/null || echo "Frontend starting..."
+          sleep 10
+          curl -sf http://localhost:3001/api/health || echo "Waiting for frontend..."
+          sleep 5
 
       - name: 🧪 Run E2E tests
         working-directory: autotests
-        run: npx playwright test || true
+        run: npx playwright test
+        continue-on-error: true
+
+      - name: 📁 Ensure report exists
+        if: always()
+        run: |
+          if [ ! -f autotests/report/index.html ]; then
+            mkdir -p autotests/report
+            echo '<html><body><h1>📚 No test report generated</h1><p>Tests may not have run. Check the workflow logs.</p></body></html>' > autotests/report/index.html
+          fi
 
       - name: 📊 Upload test report artifact
         uses: actions/upload-artifact@v4
@@ -92,10 +102,11 @@ jobs:
 
       - name: 📸 Upload test results (screenshots, traces)
         uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: test-results
           path: autotests/test-results/
+          if-no-files-found: ignore
           retention-days: 7
 
       - name: 📄 Upload report to GitHub Pages
