@@ -16,3 +16,14 @@ export const commentSchema = z.object({
 export const ratingSchema = z.object({
   value: z.number().int().min(1).max(5),
 });
+
+export const createBookSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(500),
+  author: z.string().min(1, 'Author is required').max(300),
+  description: z.string().max(5000).optional(),
+  genre: z.string().min(1, 'Genre is required').max(100),
+  content: z.string().min(1, 'Content is required'),
+  pageCount: z.number().int().positive().optional().default(0),
+  publishedYear: z.number().int().optional(),
+  coverUrl: z.string().url().optional().nullable(),
+});

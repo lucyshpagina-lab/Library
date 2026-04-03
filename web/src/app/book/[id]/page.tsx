@@ -14,7 +14,7 @@ import { BookDetailSkeleton } from '@/components/ui/Skeleton';
 import RatingStars from '@/components/common/Rating';
 import CommentList from '@/components/common/CommentList';
 import api from '@/lib/api';
-import { BookOpen, Heart, AlertCircle, ArrowLeft } from 'lucide-react';
+import { BookOpen, Heart, AlertCircle, ArrowLeft, Trash2 } from 'lucide-react';
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -37,6 +37,23 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
       addToast('Rating saved');
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await api.delete(`/books/${bookId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['books'] });
+      addToast('Book deleted');
+      router.push('/catalog');
+    },
+  });
+
+  function handleDelete() {
+    if (confirm('Are you sure you want to delete this book?')) {
+      deleteMutation.mutate();
+    }
+  }
 
   function handleToggleFavorite() {
     if (isFavorite) {
@@ -127,14 +144,24 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                   Read Book
                 </Button>
                 {user && (
-                  <Button
-                    variant={isFavorite ? 'primary' : 'secondary'}
-                    onClick={handleToggleFavorite}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-white' : ''}`} />
-                    <span className="hidden sm:inline">{isFavorite ? 'In Favorites' : 'Add to Favorites'}</span>
-                    <span className="sm:hidden">{isFavorite ? 'Saved' : 'Save'}</span>
-                  </Button>
+                  <>
+                    <Button
+                      variant={isFavorite ? 'primary' : 'secondary'}
+                      onClick={handleToggleFavorite}
+                    >
+                      <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-white' : ''}`} />
+                      <span className="hidden sm:inline">{isFavorite ? 'In Favorites' : 'Add to Favorites'}</span>
+                      <span className="sm:hidden">{isFavorite ? 'Saved' : 'Save'}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={handleDelete}
+                      className="text-red-500 hover:bg-red-50 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </>
                 )}
               </div>
 
