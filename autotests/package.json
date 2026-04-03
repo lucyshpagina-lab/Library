@@ -7,7 +7,7 @@
     "test:headed": "npx playwright test --headed",
     "test:ui": "npx playwright test --ui",
     "test:debug": "npx playwright test --debug",
-    "report": "npx playwright show-report report",
+    "report": "echo '\\n  Open report: file://$(pwd)/report/index.html\\n' && python3 -m http.server 9323 -d report 2>/dev/null || open report/index.html || xdg-open report/index.html",
     "test:auth": "npx playwright test tests/auth.spec.ts",
     "test:catalog": "npx playwright test tests/catalog.spec.ts",
     "test:books": "npx playwright test tests/book-crud.spec.ts",

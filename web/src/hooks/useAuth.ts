@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/authStore';
@@ -9,6 +9,7 @@ import { User } from '@/types/user';
 export function useAuth() {
   const { user, isLoading, setUser } = useAuthStore();
   const queryClient = useQueryClient();
+  const justAuthenticatedRef = useRef(false);
 
   const { data, isLoading: queryLoading, isError } = useQuery({
     queryKey: ['auth', 'me'],
@@ -17,6 +18,9 @@ export function useAuth() {
       return res.data.user;
     },
     retry: false,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+    enabled: !justAuthenticatedRef.current,
   });
 
   useEffect(() => {
@@ -35,8 +39,11 @@ export function useAuth() {
       return res.data.user;
     },
     onSuccess: (user) => {
+      justAuthenticatedRef.current = true;
       setUser(user);
       queryClient.setQueryData(['auth', 'me'], user);
+      // Re-enable the query after a short delay
+      setTimeout(() => { justAuthenticatedRef.current = false; }, 2000);
     },
   });
 
@@ -46,8 +53,10 @@ export function useAuth() {
       return res.data.user;
     },
     onSuccess: (user) => {
+      justAuthenticatedRef.current = true;
       setUser(user);
       queryClient.setQueryData(['auth', 'me'], user);
+      setTimeout(() => { justAuthenticatedRef.current = false; }, 2000);
     },
   });
 

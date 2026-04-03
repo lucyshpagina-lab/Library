@@ -9,3 +9,6 @@ dist/
 
 # User uploads
 server/uploads/
+
+autotests/report/
+autotests/test-results/

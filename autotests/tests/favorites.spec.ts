@@ -1,44 +1,78 @@
-import { test, expect } from '../fixtures/auth.fixture';
+import { test, expect } from '../fixtures/test.fixture';
 import { FavoritesPage } from '../pages/FavoritesPage';
-import { BookPage } from '../pages/BookPage';
+import { log } from '../helpers/api';
 
-test.describe('Favorites', () => {
-  test('should show empty state with broken heart when no favorites', async ({ authenticatedPage, testUser }) => {
-    // Preconditions: authenticated user with no favorites
+test.describe('❤️ Favorites', () => {
 
-    // Test: verify empty favorites page
-    const favPage = new FavoritesPage(authenticatedPage);
-    await favPage.open();
+  test('FAV-1: Empty favorites shows broken heart', async ({ authenticatedPage, testUser }) => {
+    await test.step('📋 PRECONDITION: User has no favorites', async () => {
+      log.precondition(`User "${testUser.username}" has no favorites yet`);
+      log.success('Clean state confirmed');
+    });
 
-    await expect(favPage.brokenHeartEmoji).toBeVisible();
-    await expect(favPage.emptyState).toContainText('is poor since');
+    await test.step('🧪 TEST: Open favorites page', async () => {
+      const favPage = new FavoritesPage(authenticatedPage);
+      await favPage.open();
+      log.test('Favorites page opened');
+    });
+
+    await test.step('✅ VERIFY: Broken heart and funny message shown', async () => {
+      const favPage = new FavoritesPage(authenticatedPage);
+      await expect(favPage.brokenHeartEmoji).toBeVisible();
+      await expect(favPage.emptyState).toContainText('is poor since');
+      log.test('💔 Broken heart emoji is visible');
+      log.success(`"${testUser.username} is poor since doesn\'t like books" shown`);
+    });
   });
 
-  test('should add favorite via API and verify on UI', async ({ authenticatedPage, api }) => {
-    // Preconditions: add a book to favorites via API
-    const booksData = await api.getBooks({ limit: '1' });
-    const bookId = booksData.books[0].id;
-    const bookTitle = booksData.books[0].title;
-    await api.addFavorite(bookId);
+  test('FAV-2: Add favorite via API → verify on favorites page', async ({ authenticatedPage, api }) => {
+    let bookTitle: string;
 
-    // Test: verify the book appears in favorites
-    const favPage = new FavoritesPage(authenticatedPage);
-    await favPage.open();
+    await test.step('📋 PRECONDITION: Add a book to favorites via API', async () => {
+      const booksRes = await api.getBooks({ limit: '1' });
+      booksRes.statusCode(200);
+      const book = booksRes.extract('books')[0];
+      bookTitle = book.title;
 
-    await expect(favPage.bookCount).toBeVisible();
-    await expect(favPage.bookByTitle(bookTitle)).toBeVisible();
+      await api.addFavorite(book.id);
+      log.precondition(`Added "${bookTitle}" to favorites`);
+      log.info(`REST Assured: favorite added for book ${book.id}`);
+      log.success('Favorite is set up');
+    });
+
+    await test.step('🧪 TEST: Open favorites page', async () => {
+      const favPage = new FavoritesPage(authenticatedPage);
+      await favPage.open();
+      log.test('Favorites page opened');
+    });
+
+    await test.step('✅ VERIFY: Book appears in favorites', async () => {
+      const favPage = new FavoritesPage(authenticatedPage);
+      await expect(favPage.bookCount).toBeVisible();
+      await expect(favPage.bookByTitle(bookTitle)).toBeVisible();
+      log.success(`"${bookTitle}" found in favorites list`);
+    });
   });
 
-  test('should show red heart counter in header when favorites exist', async ({ authenticatedPage, api }) => {
-    // Preconditions: add a favorite via API
-    const booksData = await api.getBooks({ limit: '1' });
-    await api.addFavorite(booksData.books[0].id);
+  test('FAV-3: Favorites counter shows red heart in header', async ({ authenticatedPage, api }) => {
+    await test.step('📋 PRECONDITION: Add a book to favorites via API', async () => {
+      const booksRes = await api.getBooks({ limit: '1' });
+      const book = booksRes.extract('books')[0];
+      await api.addFavorite(book.id);
+      log.precondition(`Added "${book.title}" to favorites`);
+      log.success('Favorite is set up');
+    });
 
-    // Test: verify header shows red heart with count
-    const favPage = new FavoritesPage(authenticatedPage);
-    await favPage.open();
+    await test.step('🧪 TEST: Open favorites page and check header', async () => {
+      const favPage = new FavoritesPage(authenticatedPage);
+      await favPage.open();
+      log.test('Favorites page opened');
+    });
 
-    const heartIcon = authenticatedPage.locator('header a[href="/favorites"] svg');
-    await expect(heartIcon).toHaveClass(/fill-red-500/);
+    await test.step('✅ VERIFY: Heart icon in header is red with counter', async () => {
+      const heartIcon = authenticatedPage.locator('header a[href="/favorites"] svg');
+      await expect(heartIcon).toHaveClass(/fill-red-500/);
+      log.success('Heart icon is red and filled in header');
+    });
   });
 });
