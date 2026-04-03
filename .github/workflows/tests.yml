@@ -1,0 +1,96 @@
+name: 🧪 Run Autotests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 📚 E2E Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: library_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 📦 Install root dependencies
+        run: npm install
+
+      - name: 📦 Install autotest dependencies
+        working-directory: autotests
+        run: npm install
+
+      - name: 🎭 Install Playwright browsers
+        working-directory: autotests
+        run: npx playwright install chromium --with-deps
+
+      - name: 🗄️ Setup database
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
+        run: |
+          npx prisma migrate deploy --schema=server/prisma/schema.prisma
+          npx tsx server/prisma/seed.ts
+
+      - name: 🚀 Start backend server
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
+          JWT_SECRET: github-actions-test-secret-key-32chars
+          CORS_ORIGIN: http://localhost:3001
+          PORT: 4000
+        run: |
+          npm run dev --workspace=server &
+          sleep 3
+          curl -f http://localhost:4000/api/health
+
+      - name: 🌐 Start frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:4000/api
+        run: |
+          npm run dev --workspace=web &
+          sleep 5
+          curl -f http://localhost:3001 || true
+
+      - name: 🧪 Run E2E tests
+        working-directory: autotests
+        run: npx playwright test
+
+      - name: 📊 Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: autotests/report/
+          retention-days: 30
+
+      - name: 📸 Upload test results (screenshots, traces)
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-results
+          path: autotests/test-results/
+          retention-days: 7

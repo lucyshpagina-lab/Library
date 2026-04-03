@@ -8,8 +8,7 @@ export default defineConfig({
   retries: 1,
   workers: 1,
   reporter: [
-    ['list'],
-    ['html', { outputFolder: 'report', open: 'never' }],
+    ['./helpers/custom-reporter.ts'],
   ],
   use: {
     baseURL: 'http://localhost:3001',
