@@ -86,6 +86,9 @@ export default function Header() {
               <>
                 {user ? (
                   <>
+                    <Link href="/add-book" className="text-text-secondary hover:text-pink-accent transition-colors text-sm">
+                      + Add Book
+                    </Link>
                     <Link
                       href="/favorites"
                       className="relative transition-colors"
