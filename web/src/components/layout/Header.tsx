@@ -15,7 +15,7 @@ import { BookOpen, Heart, Menu, X } from 'lucide-react';
 function UserAvatar({ username, avatarUrl, size = 'sm' }: { username: string; avatarUrl: string | null; size?: 'sm' | 'md' | 'lg' }) {
   const dims = size === 'sm' ? 'w-8 h-8 text-sm' : size === 'md' ? 'w-10 h-10 text-base' : 'w-20 h-20 text-3xl';
   if (avatarUrl) {
-    const src = avatarUrl.startsWith('/uploads') ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${avatarUrl}` : avatarUrl;
+    const src = avatarUrl;
     return <img src={src} alt={username} className={`${dims} rounded-full object-cover`} />;
   }
   return (
@@ -332,9 +332,7 @@ function ChangeAvatarModal({ onClose }: { onClose: () => void }) {
   const addToast = useToastStore((s) => s.addToast);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const avatarSrc = user?.avatarUrl
-    ? (user.avatarUrl.startsWith('/uploads') ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}${user.avatarUrl}` : user.avatarUrl)
-    : null;
+  const avatarSrc = user?.avatarUrl || null;
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
