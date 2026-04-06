@@ -76,9 +76,15 @@ jobs:
       - name: 🌐 Start frontend
         run: |
           npm run dev --workspace=web &
-          sleep 10
-          curl -sf http://localhost:3001/api/health || echo "Waiting for frontend..."
-          sleep 5
+          echo "Waiting for frontend to be ready..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3001/api/health > /dev/null 2>&1; then
+              echo "Frontend is ready! (took ${i}s)"
+              break
+            fi
+            sleep 1
+          done
+          curl -f http://localhost:3001/api/health
 
       - name: 🧪 Run E2E tests
         working-directory: autotests
