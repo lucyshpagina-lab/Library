@@ -1,8 +1,20 @@
 import { test as base, Page } from '@playwright/test';
 import { ApiHelper, log } from '../helpers/api';
+import { AuthSetup } from '../preconditions/AuthSetup';
+import { BookSetup } from '../preconditions/BookSetup';
+import { FavoriteSetup } from '../preconditions/FavoriteSetup';
+import { AuthCleanup } from '../postconditions/AuthCleanup';
+import { BookCleanup } from '../postconditions/BookCleanup';
+import { FavoriteCleanup } from '../postconditions/FavoriteCleanup';
 
 type TestFixtures = {
   api: ApiHelper;
+  authSetup: AuthSetup;
+  bookSetup: BookSetup;
+  favoriteSetup: FavoriteSetup;
+  authCleanup: AuthCleanup;
+  bookCleanup: BookCleanup;
+  favoriteCleanup: FavoriteCleanup;
   authenticatedPage: Page;
   testUser: { email: string; username: string; password: string };
 };
@@ -29,23 +41,26 @@ export const test = base.extend<TestFixtures>({
 
     await use(api);
 
-    // POSTCONDITION: cleanup
-    await base.step('🧹 POSTCONDITION: Cleanup test data', async () => {
-      log.postcondition('Cleaning up all test data...');
+    await base.step('🧹 POSTCONDITION: Cleanup all test data', async () => {
       await api.cleanupAll();
-      log.success('All test data removed');
+      log.postcondition('All test data removed');
+      log.success('Cleanup complete');
     });
   },
+
+  authSetup: async ({ api }, use) => { await use(new AuthSetup(api)); },
+  bookSetup: async ({ api }, use) => { await use(new BookSetup(api)); },
+  favoriteSetup: async ({ api }, use) => { await use(new FavoriteSetup(api)); },
+  authCleanup: async ({ api }, use) => { await use(new AuthCleanup(api)); },
+  bookCleanup: async ({ api }, use) => { await use(new BookCleanup(api)); },
+  favoriteCleanup: async ({ api }, use) => { await use(new FavoriteCleanup(api)); },
 
   authenticatedPage: async ({ browser, api }, use) => {
     const context = await browser.newContext();
     const token = api.getToken();
     if (token) {
       await context.addCookies([{
-        name: 'token',
-        value: token,
-        domain: 'localhost',
-        path: '/',
+        name: 'token', value: token, domain: 'localhost', path: '/',
       }]);
     }
     const page = await context.newPage();

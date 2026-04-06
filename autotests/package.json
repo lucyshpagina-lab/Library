@@ -1,18 +1,20 @@
 {
   "name": "autotests",
-  "version": "1.0.0",
-  "description": "E2E tests for Library app using Playwright with Page Object pattern",
+  "version": "2.0.0",
+  "description": "E2E tests for Library app — Positive, Negative, Security",
   "scripts": {
     "test": "npx playwright test",
+    "test:positive": "npx playwright test tests/positive/",
+    "test:negative": "npx playwright test tests/negative/",
+    "test:security": "npx playwright test tests/security/",
+    "test:auth": "npx playwright test tests/positive/auth tests/negative/auth tests/security/auth",
+    "test:books": "npx playwright test tests/positive/book tests/negative/book tests/security/book",
+    "test:catalog": "npx playwright test tests/positive/catalog",
+    "test:favorites": "npx playwright test tests/positive/favorites tests/negative/favorites",
     "test:headed": "npx playwright test --headed",
     "test:ui": "npx playwright test --ui",
     "test:debug": "npx playwright test --debug",
-    "report": "echo '\\n  Open report: file://$(pwd)/report/index.html\\n' && python3 -m http.server 9323 -d report 2>/dev/null || open report/index.html || xdg-open report/index.html",
-    "test:auth": "npx playwright test tests/auth.spec.ts",
-    "test:catalog": "npx playwright test tests/catalog.spec.ts",
-    "test:books": "npx playwright test tests/book-crud.spec.ts",
-    "test:favorites": "npx playwright test tests/favorites.spec.ts",
-    "test:interactions": "npx playwright test tests/book-interactions.spec.ts"
+    "report": "echo '\\n  Open report: file://$(pwd)/report/index.html\\n' && xdg-open report/index.html 2>/dev/null || open report/index.html"
   },
   "keywords": [],
   "author": "",

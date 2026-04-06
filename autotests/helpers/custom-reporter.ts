@@ -68,7 +68,11 @@ class FunReporter implements Reporter {
     const emoji = EMOJIS[result.status] || '❓';
     const duration = (result.duration / 1000).toFixed(1);
     const num = String(this.testNumber).padStart(2, ' ');
-    console.log(`  ${emoji} #${num} │ ${test.title} (${duration}s)`);
+    const filePath = test.location.file;
+    const type = filePath.includes('/positive/') ? '\x1b[42m P \x1b[0m' :
+                 filePath.includes('/negative/') ? '\x1b[41m N \x1b[0m' :
+                 filePath.includes('/security/') ? '\x1b[45m S \x1b[0m' : '   ';
+    console.log(`  ${emoji} #${num} ${type} │ ${test.title} (${duration}s)`);
   }
 
   onEnd(_result: FullResult) {
@@ -78,12 +82,23 @@ class FunReporter implements Reporter {
     const skipped = this.results.filter(r => r.result.status === 'skipped').length;
     const total = this.results.length;
 
+    const positive = this.results.filter(r => r.test.location.file.includes('/positive/')).length;
+    const negative = this.results.filter(r => r.test.location.file.includes('/negative/')).length;
+    const security = this.results.filter(r => r.test.location.file.includes('/security/')).length;
+    const posPass = this.results.filter(r => r.test.location.file.includes('/positive/') && r.result.status === 'passed').length;
+    const negPass = this.results.filter(r => r.test.location.file.includes('/negative/') && r.result.status === 'passed').length;
+    const secPass = this.results.filter(r => r.test.location.file.includes('/security/') && r.result.status === 'passed').length;
+
     console.log('\n' + '═'.repeat(60));
     console.log(`  📊 SCOREBOARD`);
-    console.log(`  ✅ Passed:  ${passed}/${total}`);
-    console.log(`  ❌ Failed:  ${failed}/${total}`);
-    console.log(`  ⏭️  Skipped: ${skipped}/${total}`);
-    console.log(`  ⏱️  Time:    ${duration}s`);
+    console.log(`  ✅ Passed:    ${passed}/${total}`);
+    console.log(`  ❌ Failed:    ${failed}/${total}`);
+    console.log(`  ⏭️  Skipped:   ${skipped}/${total}`);
+    console.log(`  ⏱️  Duration:  ${duration}s`);
+    console.log(`  ─────────────────────────────`);
+    console.log(`  🟢 Positive:  ${posPass}/${positive}`);
+    console.log(`  🔴 Negative:  ${negPass}/${negative}`);
+    console.log(`  🟣 Security:  ${secPass}/${security}`);
     console.log('═'.repeat(60));
 
     const joke = failed === 0
@@ -96,10 +111,12 @@ class FunReporter implements Reporter {
     console.log(`\n  ${fact}`);
     console.log(`\n  💡 ${motivation}`);
 
-    this.generateHtmlReport(passed, failed, skipped, total, duration, joke, fact, motivation);
+    this.generateHtmlReport(passed, failed, skipped, total, duration, joke, fact, motivation,
+      { positive, negative, security, posPass, negPass, secPass });
   }
 
-  private generateHtmlReport(passed: number, failed: number, skipped: number, total: number, duration: string, joke: string, fact: string, motivation: string) {
+  private generateHtmlReport(passed: number, failed: number, skipped: number, total: number, duration: string, joke: string, fact: string, motivation: string,
+    types: { positive: number; negative: number; security: number; posPass: number; negPass: number; secPass: number }) {
     const reportDir = path.join(__dirname, '..', 'report');
     if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
 
@@ -122,10 +139,13 @@ class FunReporter implements Reporter {
 
     let testRows = '';
     for (const [file, tests] of Object.entries(testsByFile)) {
-      const fileIcon = file.includes('auth') ? '🔐' : file.includes('catalog') ? '📚' : file.includes('crud') ? '📖' : file.includes('interact') ? '⭐' : file.includes('fav') ? '❤️' : '📋';
+      const fileIcon = file.includes('auth') ? '🔐' : file.includes('catalog') ? '📚' : file.includes('crud') ? '📖' : file.includes('interact') ? '⭐' : file.includes('fav') ? '❤️' : file.includes('api') ? '🛡️' : '📋';
+      const fileType = file.includes('positive') ? '<span class="badge badge-pos">POSITIVE</span>' :
+                        file.includes('negative') ? '<span class="badge badge-neg">NEGATIVE</span>' :
+                        file.includes('security') ? '<span class="badge badge-sec">SECURITY</span>' : '';
       const filePass = tests.filter(t => t.result.status === 'passed').length;
       const fileTotal = tests.length;
-      testRows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
+      testRows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} ${fileType} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
 
       for (const { test: t, result: r, num: n } of tests) {
         const emoji = EMOJIS[r.status] || '❓';
@@ -155,12 +175,28 @@ class FunReporter implements Reporter {
           errorHtml = `<div class="error-box">💥 ${esc((r.errors[0]?.message || 'Unknown error').substring(0, 500))}</div>`;
         }
 
+        // Extract technique tags like [EP], [BVA], [Use Case] from title
+        const tagRegex = /\[([^\]]+)\]/g;
+        let titleClean = esc(t.title);
+        let tags = '';
+        let match;
+        while ((match = tagRegex.exec(t.title)) !== null) {
+          const tag = match[1];
+          const tagClass = tag.includes('EP') ? 'tag-ep' : tag.includes('BVA') ? 'tag-bva' :
+            tag.includes('State') ? 'tag-state' : tag.includes('Use Case') || tag.includes('Scenario') ? 'tag-uc' :
+            tag.includes('Cause') ? 'tag-ce' : tag.includes('SQL') ? 'tag-sql' : tag.includes('XSS') ? 'tag-xss' :
+            tag.includes('Auth') || tag.includes('Token') || tag.includes('Security') ? 'tag-sec' :
+            tag.includes('DoS') ? 'tag-dos' : 'tag-other';
+          tags += `<span class="technique-tag ${tagClass}">${esc(tag)}</span>`;
+          titleClean = titleClean.replace(`[${esc(tag)}]`, '');
+        }
+
         testRows += `
           <tr class="test-row ${statusClass}">
             <td class="test-num">#${n}</td>
             <td class="test-emoji">${emoji}</td>
             <td class="test-info">
-              <div class="test-name">${esc(t.title)}</div>
+              <div class="test-name">${titleClean.trim()} ${tags}</div>
               ${stepsHtml}
               ${errorHtml}
             </td>
@@ -228,6 +264,17 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .step-dur{opacity:.4}
 .error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;color:#fca5a5;font-family:monospace;word-break:break-all}
 
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
+.badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}
+.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}
+
+.technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
+.tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
+.tag-state{background:rgba(16,185,129,.2);color:#6ee7b7}.tag-uc{background:rgba(99,102,241,.2);color:#a5b4fc}
+.tag-ce{background:rgba(236,72,153,.2);color:#f9a8d4}.tag-sql{background:rgba(239,68,68,.2);color:#fca5a5}
+.tag-xss{background:rgba(249,115,22,.2);color:#fdba74}.tag-sec{background:rgba(139,92,246,.2);color:#c4b5fd}
+.tag-dos{background:rgba(220,38,38,.2);color:#fca5a5}.tag-other{background:rgba(148,163,184,.2);color:#cbd5e1}
+
 .footer{text-align:center;padding:2rem 0;opacity:.4;font-size:.8rem}
 .footer a{color:#a5b4fc}
 
@@ -252,6 +299,12 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
   <div class="card c-fail"><div class="icon">${failed > 0 ? '💀' : '😎'}</div><div class="val">${failed}</div><div class="lbl">Failed</div></div>
   <div class="card c-skip"><div class="icon">⏭️</div><div class="val">${skipped}</div><div class="lbl">Skipped</div></div>
   <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
+</div>
+
+<div class="cards" style="grid-template-columns:repeat(3,1fr)">
+  <div class="card c-pos"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
+  <div class="card c-neg"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
+  <div class="card c-sec"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
 </div>
 
 <div class="bar-wrap">
