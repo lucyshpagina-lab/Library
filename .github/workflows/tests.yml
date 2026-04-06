@@ -37,7 +37,6 @@ jobs:
       DATABASE_URL: postgresql://testuser:testpass@localhost:5432/library_test
       JWT_SECRET: github-actions-test-secret-key-32chars-long
       CORS_ORIGIN: http://localhost:3001
-      PORT: 4000
 
     steps:
       - name: 📥 Checkout code
@@ -68,14 +67,18 @@ jobs:
           npx tsx server/prisma/seed.ts
 
       - name: 🚀 Start backend server
+        env:
+          PORT: 4000
         run: |
           npm run dev --workspace=server &
           sleep 4
           curl -f http://localhost:4000/api/health
 
       - name: 🌐 Start frontend
+        env:
+          PORT: 3001
         run: |
-          npm run dev --workspace=web &
+          npm run dev --workspace=web -- --port 3001 &
           echo "Waiting for frontend to be ready..."
           for i in $(seq 1 60); do
             if curl -sf http://localhost:3001/api/health > /dev/null 2>&1; then
