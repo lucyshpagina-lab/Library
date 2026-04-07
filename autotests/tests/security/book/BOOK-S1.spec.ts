@@ -1,29 +1,29 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 
-// Creates book with XSS in title via API, verifies no script execution on UI
-test('BOOK-S1: XSS in book title is escaped on UI [XSS]', async ({ authenticatedPage, api }) => {
-  let bookId: number;
-
-  await test.step('PRECONDITIONS', async () => {
-    const res = await api.createBook({
-      title: '<img src=x onerror=alert("xss")>',
-      author: 'Safe Author',
-      genre: 'Horror',
-      content: 'Normal content.',
-    });
-    if (res.status === 201) bookId = res.extract('book.id');
-  });
-
-  await test.step('TEST', async () => {
-    if (bookId!) {
-      await new BookPage(authenticatedPage).open(bookId);
-      const scripts = await authenticatedPage.locator('img[src="x"]').count();
-      expect(scripts).toBe(0);
+// Creates book with XSS in title, verifies no script execution on UI
+class BookS1 extends BaseTest {
+  private bookId!: number;
+  async preconditions() {
+    const res = await this.api.createBook({ title: '<img src=x onerror=alert("xss")>', author: 'Safe', genre: 'Horror', content: 'Normal.' });
+    if (res.status === 201) this.bookId = res.extract('book.id');
+  }
+  async test() {
+    if (this.bookId) {
+      await new BookPage(this.page).open(this.bookId);
+      expect(await this.page.locator('img[src="x"]').count()).toBe(0);
     }
-  });
+  }
+  async postconditions() { if (this.bookId) await this.api.deleteBook(this.bookId); }
+}
 
-  await test.step('POSTCONDITIONS', async () => {
-    if (bookId!) await api.deleteBook(bookId);
-  });
+test('BOOK-S1: XSS in book title is escaped on UI [XSS]', async ({ authenticatedPage, api }) => {
+  const t = new BookS1(authenticatedPage, api);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

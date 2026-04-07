@@ -1,21 +1,30 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { ApiHelper } from '../../../helpers/api';
 
-// Clicks Read Book button on book detail page and verifies reader opens
-test('INT-P3: Navigate to reader from book detail [Use Case]', async ({ page }) => {
-  let bookId: number;
-
-  await test.step('PRECONDITIONS', async () => {
+// Clicks Read Book button and verifies reader opens
+class IntP3 extends BaseTest {
+  private bookId!: number;
+  async preconditions() {
     const api = new ApiHelper();
-    const book = (await api.getBooks({ limit: '1' })).extract('books')[0];
-    bookId = book.id;
-  });
+    this.bookId = (await api.getBooks({ limit: '1' })).extract('books')[0].id;
+  }
+  async test() {
+    await new BookPage(this.page).open(this.bookId);
+    await new BookPage(this.page).readButton.click();
+    await this.page.waitForURL('/read/' + this.bookId);
+    await expect(this.page.locator('article')).toBeVisible();
+  }
+  async postconditions() {}
+}
 
-  await test.step('TEST', async () => {
-    await new BookPage(page).open(bookId);
-    await new BookPage(page).readButton.click();
-    await page.waitForURL(`/read/${bookId}`);
-    await expect(page.locator('article')).toBeVisible();
-  });
+test('INT-P3: Navigate to reader from book detail [Use Case]', async ({ page }) => {
+  const t = new IntP3(page);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

@@ -1,20 +1,31 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
 
-// Adds book to favorites via API, opens favorites page, verifies book appears
-test('FAV-P2: Add favorite via API and verify on page [Use Case]', async ({ authenticatedPage, bookSetup, favoriteSetup }) => {
-  let bookTitle: string;
-
-  await test.step('PRECONDITIONS', async () => {
-    const book = await bookSetup.getExistingBook();
-    bookTitle = book.title;
-    await favoriteSetup.addFavorite(book.id, book.title);
-  });
-
-  await test.step('TEST', async () => {
-    const fav = new FavoritesPage(authenticatedPage);
+// Adds book to favorites via API, verifies book appears on favorites page
+class FavP2 extends BaseTest {
+  private bookTitle!: string;
+  async preconditions() {
+    const books = await this.api.getBooks({ limit: '1' });
+    const book = books.extract('books')[0];
+    this.bookTitle = book.title;
+    await this.api.addFavorite(book.id);
+  }
+  async test() {
+    const fav = new FavoritesPage(this.page);
     await fav.open();
     await expect(fav.bookCount).toBeVisible();
-    await expect(fav.bookByTitle(bookTitle)).toBeVisible();
-  });
+    await expect(fav.bookByTitle(this.bookTitle)).toBeVisible();
+  }
+  async postconditions() {}
+}
+
+test('FAV-P2: Add favorite via API and verify on page [Use Case]', async ({ authenticatedPage, api }) => {
+  const t = new FavP2(authenticatedPage, api);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

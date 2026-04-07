@@ -1,14 +1,27 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 import { LoginPage } from '../../../pages/LoginPage';
 
 // Submits wrong credentials and verifies oops animation with Try Again button
-test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async ({ page }) => {
-  await test.step('PRECONDITIONS', async () => {
-    await new LoginPage(page).open();
-  });
+class AuthP2 extends BaseTest {
+  async preconditions() {
+    await new LoginPage(this.page).open();
+  }
 
-  await test.step('TEST', async () => {
-    await new LoginPage(page).login('fake@test.com', 'wrongpass');
-    await expect(new LoginPage(page).tryAgainButton).toBeVisible({ timeout: 10000 });
-  });
+  async test() {
+    await new LoginPage(this.page).login('fake@test.com', 'wrongpass');
+    await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
+  }
+
+  async postconditions() {}
+}
+
+test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async ({ page }) => {
+  const t = new AuthP2(page);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

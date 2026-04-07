@@ -1,16 +1,20 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 
 // Rates book with value 0 (below min 1) via API, verifies rejection
-test('CRUD-N2: Rating value 0 rejected below min [EP]', async ({ api, bookSetup }) => {
-  let bookId: number;
+class CrudN2 extends BaseTest {
+  private bookId!: number;
+  async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
+  async test() { expect((await this.api.rateBook(this.bookId, 0)).status).toBeGreaterThanOrEqual(400); }
+  async postconditions() {}
+}
 
-  await test.step('PRECONDITIONS', async () => {
-    const book = await bookSetup.getExistingBook();
-    bookId = book.id;
-  });
-
-  await test.step('TEST', async () => {
-    const res = await api.rateBook(bookId, 0);
-    expect(res.status).toBeGreaterThanOrEqual(400);
-  });
+test('CRUD-N2: Rating value 0 rejected below min [EP]', async ({ authenticatedPage, api }) => {
+  const t = new CrudN2(authenticatedPage, api);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

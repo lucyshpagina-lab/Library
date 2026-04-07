@@ -1,16 +1,20 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 
 // Rates book with value 6 (above max 5) via API, verifies rejection
-test('CRUD-N3: Rating value 6 rejected above max [EP]', async ({ api, bookSetup }) => {
-  let bookId: number;
+class CrudN3 extends BaseTest {
+  private bookId!: number;
+  async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
+  async test() { expect((await this.api.rateBook(this.bookId, 6)).status).toBeGreaterThanOrEqual(400); }
+  async postconditions() {}
+}
 
-  await test.step('PRECONDITIONS', async () => {
-    const book = await bookSetup.getExistingBook();
-    bookId = book.id;
-  });
-
-  await test.step('TEST', async () => {
-    const res = await api.rateBook(bookId, 6);
-    expect(res.status).toBeGreaterThanOrEqual(400);
-  });
+test('CRUD-N3: Rating value 6 rejected above max [EP]', async ({ authenticatedPage, api }) => {
+  const t = new CrudN3(authenticatedPage, api);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

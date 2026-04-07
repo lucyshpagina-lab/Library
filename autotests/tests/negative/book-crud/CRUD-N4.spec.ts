@@ -1,16 +1,20 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 
-// Submits empty comment (0 chars, min-1 boundary) via API, verifies rejection
-test('CRUD-N4: Empty comment rejected 0 chars [BVA]', async ({ api, bookSetup }) => {
-  let bookId: number;
+// Submits empty comment (0 chars) via API, verifies rejection
+class CrudN4 extends BaseTest {
+  private bookId!: number;
+  async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
+  async test() { expect((await this.api.addComment(this.bookId, '')).status).toBeGreaterThanOrEqual(400); }
+  async postconditions() {}
+}
 
-  await test.step('PRECONDITIONS', async () => {
-    const book = await bookSetup.getExistingBook();
-    bookId = book.id;
-  });
-
-  await test.step('TEST', async () => {
-    const res = await api.addComment(bookId, '');
-    expect(res.status).toBeGreaterThanOrEqual(400);
-  });
+test('CRUD-N4: Empty comment rejected 0 chars [BVA]', async ({ authenticatedPage, api }) => {
+  const t = new CrudN4(authenticatedPage, api);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });

@@ -1,14 +1,23 @@
 import { test, expect } from '../../../fixtures/test.fixture';
+import { BaseTest } from '../../../helpers/BaseTest';
 import { LoginPage } from '../../../pages/LoginPage';
 
 // Submits wrong credentials on login, verifies oops screen stays visible
-test('AUTH-N7: Login with wrong creds shows oops screen [State Transition]', async ({ page }) => {
-  await test.step('PRECONDITIONS', async () => {
-    await new LoginPage(page).open();
-  });
+class AuthN7 extends BaseTest {
+  async preconditions() { await new LoginPage(this.page).open(); }
+  async test() {
+    await new LoginPage(this.page).login('nonexistent@test.com', 'wrongpassword');
+    await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
+  }
+  async postconditions() {}
+}
 
-  await test.step('TEST', async () => {
-    await new LoginPage(page).login('nonexistent@test.com', 'wrongpassword');
-    await expect(new LoginPage(page).tryAgainButton).toBeVisible({ timeout: 10000 });
-  });
+test('AUTH-N7: Login with wrong creds shows oops screen [State Transition]', async ({ page }) => {
+  const t = new AuthN7(page);
+  await test.step('PRECONDITIONS', () => t.preconditions());
+  try {
+    await test.step('TEST', () => t.test());
+  } finally {
+    await test.step('POSTCONDITIONS', () => t.postconditions());
+  }
 });
