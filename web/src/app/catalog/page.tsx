@@ -55,7 +55,7 @@ function CatalogContent() {
         <select
           value={sortBy}
           onChange={(e) => { setSortBy(e.target.value as BookFilters['sortBy']); setPage(1); }}
-          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent"
+          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent text-center"
           style={{ padding: '10px' }}
           aria-label="Sort books"
         >
