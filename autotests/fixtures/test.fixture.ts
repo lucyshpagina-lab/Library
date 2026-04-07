@@ -1,5 +1,5 @@
 import { test as base, Page } from '@playwright/test';
-import { ApiHelper, log } from '../helpers/api';
+import { ApiHelper } from '../helpers/api';
 import { AuthSetup } from '../preconditions/AuthSetup';
 import { BookSetup } from '../preconditions/BookSetup';
 import { FavoriteSetup } from '../preconditions/FavoriteSetup';
@@ -31,20 +31,13 @@ export const test = base.extend<TestFixtures>({
 
   api: async ({ testUser }, use) => {
     const api = new ApiHelper();
-
-    await base.step('🔧 PRECONDITION: Register test user', async () => {
+    await base.step('PRECONDITIONS: Register test user', async () => {
       const res = await api.register(testUser.email, testUser.username, testUser.password);
       res.statusCode(201).hasField('user.id');
-      log.precondition(`User "${testUser.username}" registered (${testUser.email})`);
-      log.success('Test user is ready');
     });
-
     await use(api);
-
-    await base.step('🧹 POSTCONDITION: Cleanup all test data', async () => {
+    await base.step('POSTCONDITIONS: Cleanup all test data', async () => {
       await api.cleanupAll();
-      log.postcondition('All test data removed');
-      log.success('Cleanup complete');
     });
   },
 

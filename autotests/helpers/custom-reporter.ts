@@ -175,6 +175,19 @@ class FunReporter implements Reporter {
           errorHtml = `<div class="error-box">💥 ${esc((r.errors[0]?.message || 'Unknown error').substring(0, 500))}</div>`;
         }
 
+        let screenshotHtml = '';
+        if (r.status === 'failed' && r.attachments) {
+          for (const att of r.attachments) {
+            if (att.contentType?.startsWith('image/') && att.path) {
+              try {
+                const imgData = fs.readFileSync(att.path);
+                const base64 = imgData.toString('base64');
+                screenshotHtml += `<div class="screenshot"><p class="screenshot-label">📸 Screenshot on failure:</p><img src="data:${att.contentType};base64,${base64}" alt="Failed test screenshot" /></div>`;
+              } catch {}
+            }
+          }
+        }
+
         // Extract technique tags like [EP], [BVA], [Use Case] from title
         const tagRegex = /\[([^\]]+)\]/g;
         let titleClean = esc(t.title);
@@ -199,6 +212,7 @@ class FunReporter implements Reporter {
               <div class="test-name">${titleClean.trim()} ${tags}</div>
               ${stepsHtml}
               ${errorHtml}
+              ${screenshotHtml}
             </td>
             <td class="test-dur">${dur}s</td>
             <td class="test-status status-${statusClass}">${r.status.toUpperCase()}</td>
@@ -274,6 +288,10 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .tag-ce{background:rgba(236,72,153,.2);color:#f9a8d4}.tag-sql{background:rgba(239,68,68,.2);color:#fca5a5}
 .tag-xss{background:rgba(249,115,22,.2);color:#fdba74}.tag-sec{background:rgba(139,92,246,.2);color:#c4b5fd}
 .tag-dos{background:rgba(220,38,38,.2);color:#fca5a5}.tag-other{background:rgba(148,163,184,.2);color:#cbd5e1}
+
+.screenshot{margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px}
+.screenshot img{max-width:100%;border-radius:6px;margin-top:.3rem;border:1px solid rgba(255,255,255,.1)}
+.screenshot-label{font-size:.75rem;color:#fca5a5;font-weight:600}
 
 .footer{text-align:center;padding:2rem 0;opacity:.4;font-size:.8rem}
 .footer a{color:#a5b4fc}
