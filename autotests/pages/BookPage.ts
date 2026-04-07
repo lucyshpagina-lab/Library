@@ -7,13 +7,14 @@ export class BookPage extends BasePage {
 
   get title() { return this.page.locator('h1').first(); }
   get readButton() { return this.page.getByRole('button', { name: 'Read Book' }); }
-  get deleteButton() { return this.page.locator('button:has(svg.lucide-trash-2)', { hasText: 'Delete' }); }
+  get deleteButton() { return this.page.getByRole('button', { name: /🗑️.*Delete/ }); }
   get favoriteButton() { return this.page.getByRole('button', { name: /Favorites|Save/ }); }
   get comments() { return this.page.locator('#comments-section'); }
   get booksByAuthorAction() { return this.page.locator('button', { hasText: /Books by/ }); }
+  get deleteModalConfirm() { return this.page.getByRole('button', { name: /Delete forever/ }); }
 
   async deleteBook() {
-    this.page.on('dialog', (d) => d.accept());
     await this.deleteButton.click();
+    await this.deleteModalConfirm.click();
   }
 }

@@ -11,7 +11,7 @@ class AuthP1 extends BaseTest {
     await new RegisterPage(this.page).open();
   }
 
-  async test() {
+  async execute() {
     await new RegisterPage(this.page).register(`user${this.id}`, `user-${this.id}@test.com`, 'Password123!');
     await this.page.waitForURL('/', { timeout: 10000 });
     await expect(new HomePage(this.page).heroTitle).toBeVisible();
@@ -24,7 +24,7 @@ test('AUTH-P1: Register new user via UI [Use Case]', async ({ page }) => {
   const t = new AuthP1(page);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

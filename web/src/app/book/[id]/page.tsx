@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useBook } from '@/hooks/useBooks';
@@ -14,7 +14,7 @@ import { BookDetailSkeleton } from '@/components/ui/Skeleton';
 import RatingStars from '@/components/common/Rating';
 import CommentList from '@/components/common/CommentList';
 import api from '@/lib/api';
-import { BookOpen, Heart, AlertCircle, ArrowLeft, Trash2 } from 'lucide-react';
+import { BookOpen, Heart, AlertCircle } from 'lucide-react';
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -23,6 +23,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const addToast = useToastStore((s) => s.addToast);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data, isLoading, isError, refetch } = useBook(bookId);
   const isFavorite = useIsFavorite(bookId);
@@ -48,12 +49,6 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
       router.push('/catalog');
     },
   });
-
-  function handleDelete() {
-    if (confirm('Are you sure you want to delete this book?')) {
-      deleteMutation.mutate();
-    }
-  }
 
   function handleToggleFavorite() {
     if (isFavorite) {
@@ -91,7 +86,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
           </p>
           <div className="flex gap-3 justify-center">
             <Button variant="secondary" onClick={() => router.push('/catalog')}>
-              <ArrowLeft className="w-4 h-4 mr-2" /> Browse Books
+              <span>👈</span> Browse Books
             </Button>
             {isError && <Button onClick={() => refetch()}>Retry</Button>}
           </div>
@@ -107,7 +102,6 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
       <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8">
         <Card className="p-5 sm:p-8">
           <div className="flex flex-col md:flex-row gap-6 sm:gap-8">
-            {/* Cover */}
             <div className="w-full md:w-64 h-64 sm:h-80 bg-sky-light rounded-lg flex items-center justify-center flex-shrink-0">
               {book.coverUrl ? (
                 <img src={book.coverUrl} alt={book.title} className="h-full w-full object-cover rounded-lg" />
@@ -116,7 +110,6 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               )}
             </div>
 
-            {/* Details */}
             <div className="flex-1 min-w-0">
               <Badge className="mb-3">{book.genre}</Badge>
               <h1 className="text-2xl sm:text-3xl font-bold text-text-primary mb-2 break-words">{book.title}</h1>
@@ -140,8 +133,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
               <div className="flex gap-3 flex-wrap">
                 <Button onClick={() => router.push(`/read/${book.id}`)}>
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Read Book
+                  <span>📖</span> Read Book
                 </Button>
                 {user && (
                   <>
@@ -149,23 +141,21 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                       variant={isFavorite ? 'primary' : 'secondary'}
                       onClick={handleToggleFavorite}
                     >
-                      <Heart className={`w-4 h-4 mr-2 ${isFavorite ? 'fill-white' : ''}`} />
+                      <span>{isFavorite ? '❤️' : '🤍'}</span>
                       <span className="hidden sm:inline">{isFavorite ? 'In Favorites' : 'Add to Favorites'}</span>
                       <span className="sm:hidden">{isFavorite ? 'Saved' : 'Save'}</span>
                     </Button>
                     <Button
                       variant="ghost"
-                      onClick={handleDelete}
+                      onClick={() => setShowDeleteModal(true)}
                       className="text-red-500 hover:bg-red-50 hover:text-red-600"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
+                      <span>🗑️</span> Delete
                     </Button>
                   </>
                 )}
               </div>
 
-              {/* Quick actions */}
               <div className="grid gap-3 mt-6 pt-5 border-t border-gray-100">
                 <button
                   onClick={() => router.push(`/read/${book.id}`)}
@@ -213,7 +203,6 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                 </button>
               </div>
 
-              {/* User rating */}
               {user && (
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <p className="text-sm text-text-secondary mb-2">Your rating:</p>
@@ -227,11 +216,43 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </Card>
 
-        {/* Comments */}
         <div id="comments-section" className="mt-6 sm:mt-8">
           <CommentList bookId={bookId} comments={book.comments} />
         </div>
       </div>
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 px-4" onClick={() => setShowDeleteModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} className="animate-in w-full max-w-sm">
+            <Card className="p-6 text-center">
+              <div className="text-6xl mb-4 animate-oops-bounce">👋📚</div>
+              <h2 className="text-xl font-bold text-text-primary mb-2">
+                Goodbye, my dear book! 😢
+              </h2>
+              <p className="text-text-secondary mb-1">
+                &laquo;{book.title}&raquo;
+              </p>
+              <p className="text-sm text-text-secondary mb-6">
+                This book will be gone forever... like tears in rain 🌧️
+              </p>
+              <div className="flex gap-3 justify-center">
+                <Button
+                  variant="secondary"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  <span>🙅</span> Keep it!
+                </Button>
+                <Button
+                  onClick={() => { setShowDeleteModal(false); deleteMutation.mutate(); }}
+                  className="bg-red-500 hover:bg-red-600"
+                >
+                  <span>💀</span> Delete forever
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

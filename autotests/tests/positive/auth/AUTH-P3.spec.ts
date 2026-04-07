@@ -6,7 +6,7 @@ import { RegisterPage } from '../../../pages/RegisterPage';
 class AuthP3 extends BaseTest {
   private id = Date.now();
   async preconditions() { await new RegisterPage(this.page).open(); }
-  async test() {
+  async execute() {
     await new RegisterPage(this.page).register(`a${String(this.id).slice(-2)}`, `bva-${this.id}@test.com`, 'Password123!');
     await this.page.waitForURL('/', { timeout: 10000 });
   }
@@ -17,7 +17,7 @@ test('AUTH-P3: Register with exact boundary username 3 chars [BVA]', async ({ pa
   const t = new AuthP3(page);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

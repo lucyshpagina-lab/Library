@@ -10,7 +10,7 @@ class CrudP3 extends BaseTest {
     this.bookId = res.extract('book.id');
     await this.api.deleteBook(this.bookId);
   }
-  async test() {
+  async execute() {
     await this.page.goto('/book/' + this.bookId);
     await expect(this.page.locator('text=/not found|Failed to load/i')).toBeVisible({ timeout: 10000 });
   }
@@ -21,7 +21,7 @@ test('CRUD-P3: Delete book via API and verify gone on UI [State Transition]', as
   const t = new CrudP3(page, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

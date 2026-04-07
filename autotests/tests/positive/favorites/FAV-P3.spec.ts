@@ -8,7 +8,7 @@ class FavP3 extends BaseTest {
     const books = await this.api.getBooks({ limit: '1' });
     await this.api.addFavorite(books.extract('books')[0].id);
   }
-  async test() {
+  async execute() {
     await new FavoritesPage(this.page).open();
     const heart = this.page.locator('header a[href="/favorites"] svg');
     await expect(heart).toHaveClass(/fill-red-500/);
@@ -20,7 +20,7 @@ test('FAV-P3: Red heart counter in header [State Transition]', async ({ authenti
   const t = new FavP3(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

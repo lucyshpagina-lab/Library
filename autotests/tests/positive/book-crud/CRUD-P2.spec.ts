@@ -7,7 +7,7 @@ import { AddBookPage } from '../../../pages/AddBookPage';
 class CrudP2 extends BaseTest {
   private title = 'UI Book ' + Date.now();
   async preconditions() { await new AddBookPage(this.page).open(); }
-  async test() {
+  async execute() {
     const form = new AddBookPage(this.page);
     await form.fillBook({ title: this.title, author: 'UI Author', genre: 'Fantasy', content: 'UI test content.', pageCount: 200 });
     await form.submit();
@@ -24,7 +24,7 @@ test('CRUD-P2: Add book via UI form and verify redirect [Use Case]', async ({ au
   const t = new CrudP2(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

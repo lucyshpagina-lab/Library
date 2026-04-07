@@ -5,7 +5,7 @@ import { BaseTest } from '../../../helpers/BaseTest';
 class CrudN4 extends BaseTest {
   private bookId!: number;
   async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
-  async test() { expect((await this.api.addComment(this.bookId, '')).status).toBeGreaterThanOrEqual(400); }
+  async execute() { expect((await this.api.addComment(this.bookId, '')).status).toBeGreaterThanOrEqual(400); }
   async postconditions() {}
 }
 
@@ -13,7 +13,7 @@ test('CRUD-N4: Empty comment rejected 0 chars [BVA]', async ({ authenticatedPage
   const t = new CrudN4(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

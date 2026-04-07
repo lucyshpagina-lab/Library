@@ -8,7 +8,7 @@ class AuthP2 extends BaseTest {
     await new LoginPage(this.page).open();
   }
 
-  async test() {
+  async execute() {
     await new LoginPage(this.page).login('fake@test.com', 'wrongpass');
     await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
   }
@@ -20,7 +20,7 @@ test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async 
   const t = new AuthP2(page);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

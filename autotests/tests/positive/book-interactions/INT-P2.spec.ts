@@ -10,7 +10,7 @@ class IntP2 extends BaseTest {
     this.bookId = books.extract('books')[0].id;
     (await this.api.rateBook(this.bookId, 5)).statusCode(200);
   }
-  async test() {
+  async execute() {
     await new BookPage(this.page).open(this.bookId);
     await expect(this.page.locator('text=/\\d+\\.\\d/').first()).toBeVisible();
   }
@@ -21,7 +21,7 @@ test('INT-P2: Rate book via API and verify rating on UI [State Transition]', asy
   const t = new IntP2(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

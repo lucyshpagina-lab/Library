@@ -9,7 +9,7 @@ class BookS1 extends BaseTest {
     const res = await this.api.createBook({ title: '<img src=x onerror=alert("xss")>', author: 'Safe', genre: 'Horror', content: 'Normal.' });
     if (res.status === 201) this.bookId = res.extract('book.id');
   }
-  async test() {
+  async execute() {
     if (this.bookId) {
       await new BookPage(this.page).open(this.bookId);
       expect(await this.page.locator('img[src="x"]').count()).toBe(0);
@@ -22,7 +22,7 @@ test('BOOK-S1: XSS in book title is escaped on UI [XSS]', async ({ authenticated
   const t = new BookS1(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

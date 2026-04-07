@@ -11,7 +11,7 @@ class FavP2 extends BaseTest {
     this.bookTitle = book.title;
     await this.api.addFavorite(book.id);
   }
-  async test() {
+  async execute() {
     const fav = new FavoritesPage(this.page);
     await fav.open();
     await expect(fav.bookCount).toBeVisible();
@@ -24,7 +24,7 @@ test('FAV-P2: Add favorite via API and verify on page [Use Case]', async ({ auth
   const t = new FavP2(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

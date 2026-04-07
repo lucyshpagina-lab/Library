@@ -5,7 +5,7 @@ import { RegisterPage } from '../../../pages/RegisterPage';
 // Submits mismatched passwords on register, verifies error message
 class AuthN8 extends BaseTest {
   async preconditions() { await new RegisterPage(this.page).open(); }
-  async test() {
+  async execute() {
     const reg = new RegisterPage(this.page);
     await reg.usernameInput.fill('mismatch');
     await reg.emailInput.fill('mismatch@test.com');
@@ -21,7 +21,7 @@ test('AUTH-N8: Passwords mismatch shows error message [Cause-Effect]', async ({ 
   const t = new AuthN8(page);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

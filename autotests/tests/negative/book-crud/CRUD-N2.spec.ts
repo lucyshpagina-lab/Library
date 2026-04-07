@@ -5,7 +5,7 @@ import { BaseTest } from '../../../helpers/BaseTest';
 class CrudN2 extends BaseTest {
   private bookId!: number;
   async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
-  async test() { expect((await this.api.rateBook(this.bookId, 0)).status).toBeGreaterThanOrEqual(400); }
+  async execute() { expect((await this.api.rateBook(this.bookId, 0)).status).toBeGreaterThanOrEqual(400); }
   async postconditions() {}
 }
 
@@ -13,7 +13,7 @@ test('CRUD-N2: Rating value 0 rejected below min [EP]', async ({ authenticatedPa
   const t = new CrudN2(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

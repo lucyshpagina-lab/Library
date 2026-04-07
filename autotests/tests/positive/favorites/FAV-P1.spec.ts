@@ -5,7 +5,7 @@ import { FavoritesPage } from '../../../pages/FavoritesPage';
 // Opens favorites page with no favorites and verifies broken heart empty state
 class FavP1 extends BaseTest {
   async preconditions() {}
-  async test() {
+  async execute() {
     const fav = new FavoritesPage(this.page);
     await fav.open();
     await expect(fav.brokenHeartEmoji).toBeVisible();
@@ -18,7 +18,7 @@ test('FAV-P1: Empty favorites shows broken heart [State Transition]', async ({ a
   const t = new FavP1(authenticatedPage);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {
-    await test.step('TEST', () => t.test());
+    await test.step('TEST', () => t.execute());
   } finally {
     await test.step('POSTCONDITIONS', () => t.postconditions());
   }

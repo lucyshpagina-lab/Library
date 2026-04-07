@@ -11,6 +11,6 @@ export abstract class BaseTest {
   }
 
   abstract preconditions(): Promise<void>;
-  abstract test(): Promise<void>;
+  abstract execute(): Promise<void>;
   abstract postconditions(): Promise<void>;
 }
