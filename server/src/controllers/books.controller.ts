@@ -33,9 +33,17 @@ export async function getBooks(req: Request, res: Response, next: NextFunction) 
         skip: (page - 1) * limit,
         take: limit,
         select: {
-          id: true, title: true, author: true, description: true,
-          coverUrl: true, genre: true, pageCount: true, publishedYear: true,
-          avgRating: true, ratingsCount: true, createdAt: true,
+          id: true,
+          title: true,
+          author: true,
+          description: true,
+          coverUrl: true,
+          genre: true,
+          pageCount: true,
+          publishedYear: true,
+          avgRating: true,
+          ratingsCount: true,
+          createdAt: true,
         },
       }),
       prisma.book.count({ where }),
@@ -138,6 +146,9 @@ export async function rateBook(req: Request, res: Response, next: NextFunction) 
 
 export async function createBook(req: Request, res: Response, next: NextFunction) {
   try {
+    if (!req.isAdmin) {
+      throw new AppError(403, 'Only admins can create books');
+    }
     const book = await prisma.book.create({
       data: req.body,
     });
@@ -149,6 +160,10 @@ export async function createBook(req: Request, res: Response, next: NextFunction
 
 export async function deleteBook(req: Request, res: Response, next: NextFunction) {
   try {
+    if (!req.isAdmin) {
+      throw new AppError(403, 'Only admins can delete books');
+    }
+
     const id = parseInt(req.params.id);
     if (isNaN(id)) throw new AppError(400, 'Invalid book ID');
 
@@ -174,7 +189,7 @@ export async function getGenres(_req: Request, res: Response, next: NextFunction
       distinct: ['genre'],
       orderBy: { genre: 'asc' },
     });
-    res.json({ genres: genres.map(g => g.genre) });
+    res.json({ genres: genres.map((g) => g.genre) });
   } catch (err) {
     next(err);
   }
