@@ -55,14 +55,14 @@ function CatalogContent() {
         <select
           value={sortBy}
           onChange={(e) => { setSortBy(e.target.value as BookFilters['sortBy']); setPage(1); }}
-          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent text-center"
+          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent text-center appearance-none"
           style={{ padding: '10px' }}
           aria-label="Sort books"
         >
-          <option value="date">Newest</option>
-          <option value="rating">Top Rated</option>
-          <option value="title">Title A-Z</option>
-          <option value="author">Author A-Z</option>
+          <option value="date">🕐 Newest</option>
+          <option value="rating">⭐ Top Rated</option>
+          <option value="title">🔤 Title A-Z</option>
+          <option value="author">✍️ Author A-Z</option>
         </select>
       </div>
 

@@ -6,6 +6,7 @@ import { FavoriteSetup } from '../preconditions/FavoriteSetup';
 import { AuthCleanup } from '../postconditions/AuthCleanup';
 import { BookCleanup } from '../postconditions/BookCleanup';
 import { FavoriteCleanup } from '../postconditions/FavoriteCleanup';
+import { Postconditions } from '../postconditions/Postconditions';
 
 type TestFixtures = {
   api: ApiHelper;
@@ -15,6 +16,7 @@ type TestFixtures = {
   authCleanup: AuthCleanup;
   bookCleanup: BookCleanup;
   favoriteCleanup: FavoriteCleanup;
+  postconditions: Postconditions;
   authenticatedPage: Page;
   testUser: { email: string; username: string; password: string };
 };
@@ -47,6 +49,7 @@ export const test = base.extend<TestFixtures>({
   authCleanup: async ({ api }, use) => { await use(new AuthCleanup(api)); },
   bookCleanup: async ({ api }, use) => { await use(new BookCleanup(api)); },
   favoriteCleanup: async ({ api }, use) => { await use(new FavoriteCleanup(api)); },
+  postconditions: async ({ api }, use) => { await use(new Postconditions(api)); },
 
   authenticatedPage: async ({ browser, api }, use) => {
     const context = await browser.newContext();

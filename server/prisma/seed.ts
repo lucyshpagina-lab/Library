@@ -1909,6 +1909,20 @@ async function fetchCoverUrl(title: string, author: string): Promise<string | nu
   return null;
 }
 
+async function fetchGoogleCoverUrl(title: string, author: string): Promise<string | null> {
+  try {
+    const q = encodeURIComponent(`${title} ${author}`);
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const item = data.items?.find((i: any) => i.volumeInfo?.imageLinks?.thumbnail);
+    if (item) return item.volumeInfo.imageLinks.thumbnail.replace('http://', 'https://');
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
   console.log('Clearing existing data...');
   await prisma.comment.deleteMany();
@@ -1921,10 +1935,27 @@ async function main() {
   const booksWithCovers = [];
   for (let i = 0; i < books.length; i++) {
     const book = books[i];
-    const coverUrl = await fetchCoverUrl(book.title, book.author);
+    let coverUrl = await fetchCoverUrl(book.title, book.author);
+    if (!coverUrl) {
+      console.log(`  ↻ Trying Google Books for: ${book.title}`);
+      coverUrl = await fetchGoogleCoverUrl(book.title, book.author);
+    }
+    if (!coverUrl) {
+      coverUrl = `https://covers.openlibrary.org/b/isbn/placeholder-L.jpg`;
+    }
     booksWithCovers.push({ ...book, coverUrl });
     const status = coverUrl ? '✓' : '✗';
     console.log(`  ${status} [${i + 1}/${books.length}] ${book.title}`);
+  }
+
+  // Remove cover from the last book of each genre
+  const genreMap = new Map<string, number>();
+  for (let i = 0; i < booksWithCovers.length; i++) {
+    genreMap.set(booksWithCovers[i].genre, i);
+  }
+  for (const [genre, lastIndex] of genreMap) {
+    booksWithCovers[lastIndex].coverUrl = null;
+    console.log(`  ○ Removed cover from last "${genre}" book: ${booksWithCovers[lastIndex].title}`);
   }
 
   console.log('Seeding database...');
@@ -1934,7 +1965,8 @@ async function main() {
 
   const genres = new Set(books.map(b => b.genre));
   const withCovers = booksWithCovers.filter(b => b.coverUrl).length;
-  console.log(`Seeded ${books.length} books across ${genres.size} genres (${withCovers} with covers):`);
+  const withoutCovers = booksWithCovers.filter(b => !b.coverUrl).length;
+  console.log(`Seeded ${books.length} books across ${genres.size} genres (${withCovers} with covers, ${withoutCovers} without):`);
   for (const genre of genres) {
     const count = books.filter(b => b.genre === genre).length;
     console.log(`  - ${genre}: ${count} books`);

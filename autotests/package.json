@@ -11,6 +11,7 @@
     "test:books": "npx playwright test tests/positive/book tests/negative/book tests/security/book",
     "test:catalog": "npx playwright test tests/positive/catalog",
     "test:favorites": "npx playwright test tests/positive/favorites tests/negative/favorites",
+    "test:load": "npx playwright test tests/load/",
     "test:headed": "npx playwright test --headed",
     "test:ui": "npx playwright test --ui",
     "test:debug": "npx playwright test --debug",
