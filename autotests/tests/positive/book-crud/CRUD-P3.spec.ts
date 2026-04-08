@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { Page } from '@playwright/test';
 
 // Creates book via API, deletes it, verifies book page shows not found
@@ -20,12 +20,19 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
-  constructor(page: Page, private bookId: number) { super(page); }
+class Test extends BaseTest {
+  constructor(
+    page: Page,
+    private bookId: number,
+  ) {
+    super(page);
+  }
 
   async execute() {
     await this.page.goto('/book/' + this.bookId);
-    await expect(this.page.locator('text=/not found|Failed to load/i')).toBeVisible({ timeout: 10000 });
+    await expect(this.page.locator('text=/not found|Failed to load/i')).toBeVisible({
+      timeout: 10000,
+    });
   }
 }
 
@@ -35,11 +42,14 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('CRUD-P3: Delete book via API and verify gone on UI [State Transition]', async ({ page, api }) => {
+test('CRUD-P3: Delete book via API and verify gone on UI [State Transition]', async ({
+  page,
+  api,
+}) => {
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new TestAction(page, pre.bookId);
+  const action = new Test(page, pre.bookId);
   const post = new Postconditions(api);
 
   try {

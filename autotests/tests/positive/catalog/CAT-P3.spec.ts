@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { CatalogPage } from '../../../pages/CatalogPage';
 
 // Changes sort to Author A-Z and verifies books reload
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     const catalog = new CatalogPage(this.page);
     await catalog.open();
@@ -28,7 +28,7 @@ class Postconditions extends BasePostconditions {
 
 test('CAT-P3: Sort books by author A-Z [EP: valid sort]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(page);
+  const action = new Test(page);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

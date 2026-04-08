@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 const API_URL = 'http://localhost:4000/api';
 
 // Throughput test: fires 1000 concurrent requests and measures req/sec
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     const totalRequests = 1000;
     const batchSize = 100;
@@ -22,11 +22,13 @@ class TestAction extends BaseTestAction {
     for (let batch = 0; batch < totalRequests / batchSize; batch++) {
       const promises = Array.from({ length: batchSize }, () =>
         fetch(`${API_URL}/books?page=1&limit=12`)
-          .then(res => {
+          .then((res) => {
             if (res.ok) completed++;
             else failed++;
           })
-          .catch(() => { failed++; })
+          .catch(() => {
+            failed++;
+          }),
       );
       await Promise.all(promises);
     }
@@ -34,7 +36,9 @@ class TestAction extends BaseTestAction {
     const elapsed = (performance.now() - start) / 1000;
     const throughput = completed / elapsed;
 
-    console.log(`  Throughput — ${throughput.toFixed(0)} req/sec | completed: ${completed} | failed: ${failed} | time: ${elapsed.toFixed(2)}s`);
+    console.log(
+      `  Throughput — ${throughput.toFixed(0)} req/sec | completed: ${completed} | failed: ${failed} | time: ${elapsed.toFixed(2)}s`,
+    );
     expect(throughput).toBeGreaterThanOrEqual(1000);
     expect(failed).toBe(0);
   }
@@ -46,9 +50,12 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('LOAD-2: Throughput ≥ 1000 req/sec for GET /books [Performance]', async ({ authenticatedPage, api }) => {
+test('LOAD-2: Throughput ≥ 1000 req/sec for GET /books [Performance]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

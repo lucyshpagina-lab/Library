@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 const API_URL = 'http://localhost:4000/api';
 
 // No packet loss: every request under heavy load must succeed
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     const totalRequests = 1000;
     const batchSize = 100;
@@ -22,14 +22,14 @@ class TestAction extends BaseTestAction {
       const promises = Array.from({ length: batchSize }, (_, i) => {
         const reqIndex = batch * batchSize + i + 1;
         return fetch(`${API_URL}/books?page=1&limit=12`)
-          .then(res => {
+          .then((res) => {
             if (res.ok) succeeded++;
             else {
               failed++;
               errors.push(`Request #${reqIndex}: HTTP ${res.status}`);
             }
           })
-          .catch(err => {
+          .catch((err) => {
             failed++;
             errors.push(`Request #${reqIndex}: ${err.message}`);
           });
@@ -38,7 +38,9 @@ class TestAction extends BaseTestAction {
     }
 
     const lossRate = (failed / totalRequests) * 100;
-    console.log(`  Packet loss — ${lossRate.toFixed(2)}% | succeeded: ${succeeded}/${totalRequests} | failed: ${failed}`);
+    console.log(
+      `  Packet loss — ${lossRate.toFixed(2)}% | succeeded: ${succeeded}/${totalRequests} | failed: ${failed}`,
+    );
     if (errors.length > 0) {
       console.log(`  First 5 errors: ${errors.slice(0, 5).join('; ')}`);
     }
@@ -54,9 +56,12 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('LOAD-4: No packet loss under load (1000 requests) [Performance]', async ({ authenticatedPage, api }) => {
+test('LOAD-4: No packet loss under load (1000 requests) [Performance]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

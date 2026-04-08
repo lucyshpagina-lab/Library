@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { ApiHelper } from '../../../helpers/api';
 // Creates book via API, opens book page, verifies title and author visible, deletes
@@ -19,8 +19,13 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
-  constructor(page: Page, private book: any) { super(page); }
+class Test extends BaseTest {
+  constructor(
+    page: Page,
+    private book: any,
+  ) {
+    super(page);
+  }
 
   async execute() {
     await new BookPage(this.page).open(this.book.id);
@@ -30,7 +35,12 @@ class TestAction extends BaseTestAction {
 }
 
 class Postconditions extends BasePostconditions {
-  constructor(api: ApiHelper, private bookId: number) { super(api); }
+  constructor(
+    api: ApiHelper,
+    private bookId: number,
+  ) {
+    super(api);
+  }
 
   async cleanup() {
     await this.api.deleteBook(this.bookId);
@@ -38,11 +48,14 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('CRUD-P1: Create book via API and verify on UI [Use Case]', async ({ authenticatedPage, api }) => {
+test('CRUD-P1: Create book via API and verify on UI [Use Case]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new TestAction(authenticatedPage, pre.book);
+  const action = new Test(authenticatedPage, pre.book);
   const post = new Postconditions(api, pre.book.id);
 
   try {

@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
 
 // Opens favorites page with no favorites and verifies broken heart empty state
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     const fav = new FavoritesPage(this.page);
     await fav.open();
@@ -25,9 +25,12 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('FAV-P1: Empty favorites shows broken heart [State Transition]', async ({ authenticatedPage, api }) => {
+test('FAV-P1: Empty favorites shows broken heart [State Transition]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

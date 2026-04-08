@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { LoginPage } from '../../../pages/LoginPage';
 
 // Submits wrong credentials and verifies oops animation with Try Again button
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     await new LoginPage(this.page).open();
     await new LoginPage(this.page).login('fake@test.com', 'wrongpass');
@@ -26,7 +26,7 @@ class Postconditions extends BasePostconditions {
 
 test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(page);
+  const action = new Test(page);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { RegisterPage } from '../../../pages/RegisterPage';
 import { HomePage } from '../../../pages/HomePage';
 
@@ -11,12 +11,16 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   private id = Date.now();
 
   async execute() {
     await new RegisterPage(this.page).open();
-    await new RegisterPage(this.page).register(`user${this.id}`, `user-${this.id}@test.com`, 'Password123!');
+    await new RegisterPage(this.page).register(
+      `user${this.id}`,
+      `user-${this.id}@test.com`,
+      'Password123!',
+    );
     await this.page.waitForURL('/', { timeout: 10000 });
     await expect(new HomePage(this.page).heroTitle).toBeVisible();
   }
@@ -30,7 +34,7 @@ class Postconditions extends BasePostconditions {
 
 test('AUTH-P1: Register new user via UI [Use Case]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(page);
+  const action = new Test(page);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

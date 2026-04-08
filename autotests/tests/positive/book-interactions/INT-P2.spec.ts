@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { Page } from '@playwright/test';
 
@@ -15,8 +15,13 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
-  constructor(page: Page, private bookId: number) { super(page); }
+class Test extends BaseTest {
+  constructor(
+    page: Page,
+    private bookId: number,
+  ) {
+    super(page);
+  }
 
   async execute() {
     await new BookPage(this.page).open(this.bookId);
@@ -30,11 +35,14 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('INT-P2: Rate book via API and verify rating on UI [State Transition]', async ({ authenticatedPage, api }) => {
+test('INT-P2: Rate book via API and verify rating on UI [State Transition]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new TestAction(authenticatedPage, pre.bookId);
+  const action = new Test(authenticatedPage, pre.bookId);
   const post = new Postconditions(api);
 
   try {

@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
 import { ApiHelper } from '../../../helpers/api';
 // Adds favorite via API, verifies heart icon in header is red and filled
@@ -14,7 +14,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     await new FavoritesPage(this.page).open();
     const heart = this.page.locator('header a[href="/favorites"] svg');
@@ -23,7 +23,12 @@ class TestAction extends BaseTestAction {
 }
 
 class Postconditions extends BasePostconditions {
-  constructor(api: ApiHelper, private bookId: number) { super(api); }
+  constructor(
+    api: ApiHelper,
+    private bookId: number,
+  ) {
+    super(api);
+  }
 
   async cleanup() {
     await this.api.removeFavorite(this.bookId);
@@ -31,11 +36,14 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('FAV-P3: Red heart counter in header [State Transition]', async ({ authenticatedPage, api }) => {
+test('FAV-P3: Red heart counter in header [State Transition]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api, pre.bookId);
 
   try {

@@ -1,5 +1,5 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { AddBookPage } from '../../../pages/AddBookPage';
 import { ApiHelper } from '../../../helpers/api';
@@ -13,13 +13,19 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   title = 'UI Book ' + Date.now();
 
   async execute() {
     await new AddBookPage(this.page).open();
     const form = new AddBookPage(this.page);
-    await form.fillBook({ title: this.title, author: 'UI Author', genre: 'Fantasy', content: 'UI test content.', pageCount: 200 });
+    await form.fillBook({
+      title: this.title,
+      author: 'UI Author',
+      genre: 'Fantasy',
+      content: 'UI test content.',
+      pageCount: 200,
+    });
     await form.submit();
     await this.page.waitForURL(/\/book\/\d+/, { timeout: 10000 });
     await expect(new BookPage(this.page).title).toContainText(this.title);
@@ -27,7 +33,12 @@ class TestAction extends BaseTestAction {
 }
 
 class Postconditions extends BasePostconditions {
-  constructor(api: ApiHelper, private page: Page) { super(api); }
+  constructor(
+    api: ApiHelper,
+    private page: Page,
+  ) {
+    super(api);
+  }
 
   async cleanup() {
     await new BookPage(this.page).deleteBook();
@@ -36,9 +47,12 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('CRUD-P2: Add book via UI form and verify redirect [Use Case]', async ({ authenticatedPage, api }) => {
+test('CRUD-P2: Add book via UI form and verify redirect [Use Case]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api, authenticatedPage);
 
   await test.step('PRECONDITIONS', () => pre.setup());

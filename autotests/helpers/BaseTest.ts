@@ -19,7 +19,7 @@ export abstract class BasePreconditions {
  * Base class for TEST: contains UI actions and assertions.
  * Receives page and any data created by preconditions.
  */
-export abstract class BaseTestAction {
+export abstract class BaseTest {
   protected page: Page;
 
   constructor(page: Page) {

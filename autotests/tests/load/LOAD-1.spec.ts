@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 const API_URL = 'http://localhost:4000/api';
 
 // Measures average response time for GET /books endpoint
@@ -10,7 +10,7 @@ class Preconditions extends BasePreconditions {
   }
 }
 
-class TestAction extends BaseTestAction {
+class Test extends BaseTest {
   async execute() {
     const iterations = 50;
     const times: number[] = [];
@@ -27,7 +27,9 @@ class TestAction extends BaseTestAction {
     const max = Math.max(...times);
     const p95 = times.sort((a, b) => a - b)[Math.floor(times.length * 0.95)];
 
-    console.log(`  Response time — avg: ${avg.toFixed(0)}ms | p95: ${p95.toFixed(0)}ms | max: ${max.toFixed(0)}ms`);
+    console.log(
+      `  Response time — avg: ${avg.toFixed(0)}ms | p95: ${p95.toFixed(0)}ms | max: ${max.toFixed(0)}ms`,
+    );
     expect(avg).toBeLessThanOrEqual(2000);
     expect(p95).toBeLessThanOrEqual(2000);
   }
@@ -39,9 +41,12 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('LOAD-1: Response time ≤ 2 sec for GET /books [Performance]', async ({ authenticatedPage, api }) => {
+test('LOAD-1: Response time ≤ 2 sec for GET /books [Performance]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const pre = new Preconditions(api);
-  const action = new TestAction(authenticatedPage);
+  const action = new Test(authenticatedPage);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());
