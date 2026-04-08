@@ -1,31 +1,50 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { AddBookPage } from '../../../pages/AddBookPage';
+import { ApiHelper } from '../../../helpers/api';
+import { Page } from '@playwright/test';
 
 // Adds book via UI form, verifies redirect to detail page, deletes via UI
-class CrudP2 extends BaseTest {
-  private title = 'UI Book ' + Date.now();
-  async preconditions() { await new AddBookPage(this.page).open(); }
+
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No API setup — book is created via UI in the test
+  }
+}
+
+class TestAction extends BaseTestAction {
+  title = 'UI Book ' + Date.now();
+
   async execute() {
+    await new AddBookPage(this.page).open();
     const form = new AddBookPage(this.page);
     await form.fillBook({ title: this.title, author: 'UI Author', genre: 'Fantasy', content: 'UI test content.', pageCount: 200 });
     await form.submit();
     await this.page.waitForURL(/\/book\/\d+/, { timeout: 10000 });
     await expect(new BookPage(this.page).title).toContainText(this.title);
   }
-  async postconditions() {
+}
+
+class Postconditions extends BasePostconditions {
+  constructor(api: ApiHelper, private page: Page) { super(api); }
+
+  async cleanup() {
     await new BookPage(this.page).deleteBook();
     await this.page.waitForURL('/catalog', { timeout: 10000 });
+    await this.api.cleanupAll();
   }
 }
 
 test('CRUD-P2: Add book via UI form and verify redirect [Use Case]', async ({ authenticatedPage, api }) => {
-  const t = new CrudP2(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new TestAction(authenticatedPage);
+  const post = new Postconditions(api, authenticatedPage);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

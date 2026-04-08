@@ -1,12 +1,16 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BaseTest } from '../../helpers/BaseTest';
-
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
 const API_URL = 'http://localhost:4000/api';
 
 // Measures average response time for GET /books endpoint
-class Load1 extends BaseTest {
-  async preconditions() {}
 
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup — testing against seeded data
+  }
+}
+
+class TestAction extends BaseTestAction {
   async execute() {
     const iterations = 50;
     const times: number[] = [];
@@ -27,18 +31,23 @@ class Load1 extends BaseTest {
     expect(avg).toBeLessThanOrEqual(2000);
     expect(p95).toBeLessThanOrEqual(2000);
   }
+}
 
-  async postconditions() {
+class Postconditions extends BasePostconditions {
+  async cleanup() {
     await this.api.cleanupAll();
   }
 }
 
 test('LOAD-1: Response time ≤ 2 sec for GET /books [Performance]', async ({ authenticatedPage, api }) => {
-  const t = new Load1(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new TestAction(authenticatedPage);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

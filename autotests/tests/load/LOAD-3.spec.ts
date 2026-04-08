@@ -1,13 +1,18 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BaseTest } from '../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
 import * as os from 'os';
 
 const API_URL = 'http://localhost:4000/api';
 
 // CPU usage test: monitors CPU while sending sustained load
-class Load3 extends BaseTest {
-  async preconditions() {}
 
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup — testing against seeded data
+  }
+}
+
+class TestAction extends BaseTestAction {
   private getCpuUsage(): number {
     try {
       const cpus = os.cpus();
@@ -26,8 +31,6 @@ class Load3 extends BaseTest {
 
   async execute() {
     const samples: number[] = [];
-
-    // Send sustained load for 5 seconds
     const duration = 5000;
     const start = performance.now();
 
@@ -45,18 +48,23 @@ class Load3 extends BaseTest {
     console.log(`  CPU usage — avg: ${avgCpu.toFixed(1)}% | max: ${maxCpu.toFixed(1)}% | samples: ${samples.length}`);
     expect(maxCpu).toBeLessThanOrEqual(80);
   }
+}
 
-  async postconditions() {
+class Postconditions extends BasePostconditions {
+  async cleanup() {
     await this.api.cleanupAll();
   }
 }
 
 test('LOAD-3: CPU ≤ 80% under sustained load [Performance]', async ({ authenticatedPage, api }) => {
-  const t = new Load3(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new TestAction(authenticatedPage);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

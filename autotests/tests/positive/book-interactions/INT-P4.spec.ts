@@ -1,29 +1,45 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
-import { ApiHelper } from '../../../helpers/api';
+import { Page } from '@playwright/test';
 
 // Clicks Books by Author action and verifies catalog opens
-class IntP4 extends BaseTest {
-  private bookId!: number;
-  async preconditions() {
-    const api = new ApiHelper();
-    this.bookId = (await api.getBooks({ limit: '1' })).extract('books')[0].id;
+
+class Preconditions extends BasePreconditions {
+  bookId!: number;
+
+  async setup() {
+    const books = await this.api.getBooks({ limit: '1' });
+    this.bookId = books.extract('books')[0].id;
   }
+}
+
+class TestAction extends BaseTestAction {
+  constructor(page: Page, private bookId: number) { super(page); }
+
   async execute() {
     await new BookPage(this.page).open(this.bookId);
     await new BookPage(this.page).booksByAuthorAction.click();
     await this.page.waitForURL(/\/catalog/, { timeout: 10000 });
   }
-  async postconditions() {}
 }
 
-test('INT-P4: Navigate to author books from book detail [Use Case]', async ({ page }) => {
-  const t = new IntP4(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    await this.api.cleanupAll();
+  }
+}
+
+test('INT-P4: Navigate to author books from book detail [Use Case]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new TestAction(page, pre.bookId);
+  const post = new Postconditions(api);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

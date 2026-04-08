@@ -1,28 +1,50 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
+import { Page } from '@playwright/test';
 
 // Creates book via API, deletes it, verifies book page shows not found
-class CrudP3 extends BaseTest {
-  private bookId!: number;
-  async preconditions() {
-    const res = await this.api.createBook({ title: 'Delete ' + Date.now(), author: 'Ghost', genre: 'Horror', content: 'Will be deleted.' });
+
+class Preconditions extends BasePreconditions {
+  bookId!: number;
+
+  async setup() {
+    const res = await this.api.createBook({
+      title: 'Delete ' + Date.now(),
+      author: 'Ghost',
+      genre: 'Horror',
+      content: 'Will be deleted.',
+    });
     res.statusCode(201);
     this.bookId = res.extract('book.id');
     await this.api.deleteBook(this.bookId);
   }
+}
+
+class TestAction extends BaseTestAction {
+  constructor(page: Page, private bookId: number) { super(page); }
+
   async execute() {
     await this.page.goto('/book/' + this.bookId);
     await expect(this.page.locator('text=/not found|Failed to load/i')).toBeVisible({ timeout: 10000 });
   }
-  async postconditions() {}
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    await this.api.cleanupAll();
+  }
 }
 
 test('CRUD-P3: Delete book via API and verify gone on UI [State Transition]', async ({ page, api }) => {
-  const t = new CrudP3(page, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new TestAction(page, pre.bookId);
+  const post = new Postconditions(api);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

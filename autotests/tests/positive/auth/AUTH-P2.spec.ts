@@ -1,27 +1,38 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { LoginPage } from '../../../pages/LoginPage';
 
 // Submits wrong credentials and verifies oops animation with Try Again button
-class AuthP2 extends BaseTest {
-  async preconditions() {
-    await new LoginPage(this.page).open();
-  }
 
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup needed — testing invalid credentials
+  }
+}
+
+class TestAction extends BaseTestAction {
   async execute() {
+    await new LoginPage(this.page).open();
     await new LoginPage(this.page).login('fake@test.com', 'wrongpass');
     await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
   }
-
-  async postconditions() {}
 }
 
-test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async ({ page }) => {
-  const t = new AuthP2(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    await this.api.cleanupAll();
+  }
+}
+
+test('AUTH-P2: Login shows oops then Try Again works [State Transition]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  const action = new TestAction(page);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

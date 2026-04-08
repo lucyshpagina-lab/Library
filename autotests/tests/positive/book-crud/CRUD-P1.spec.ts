@@ -1,25 +1,53 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
-
+import { ApiHelper } from '../../../helpers/api';
 // Creates book via API, opens book page, verifies title and author visible, deletes
-class CrudP1 extends BaseTest {
-  private book: any;
-  async preconditions() { this.book = await this.api.createBook({ title: 'API Test ' + Date.now(), author: 'Test Author', genre: 'Science Fiction', content: 'Test content.' }).then(r => { r.statusCode(201); return { id: r.extract('book.id'), title: r.extract('book.title') }; }); }
+
+class Preconditions extends BasePreconditions {
+  book: any;
+
+  async setup() {
+    const res = await this.api.createBook({
+      title: 'API Test ' + Date.now(),
+      author: 'Test Author',
+      genre: 'Science Fiction',
+      content: 'Test content.',
+    });
+    res.statusCode(201);
+    this.book = { id: res.extract('book.id'), title: res.extract('book.title') };
+  }
+}
+
+class TestAction extends BaseTestAction {
+  constructor(page: Page, private book: any) { super(page); }
+
   async execute() {
     await new BookPage(this.page).open(this.book.id);
     await expect(new BookPage(this.page).title).toContainText(this.book.title, { timeout: 10000 });
     await expect(this.page.getByText('Test Author', { exact: true })).toBeVisible();
   }
-  async postconditions() { await this.api.deleteBook(this.book.id); }
+}
+
+class Postconditions extends BasePostconditions {
+  constructor(api: ApiHelper, private bookId: number) { super(api); }
+
+  async cleanup() {
+    await this.api.deleteBook(this.bookId);
+    await this.api.cleanupAll();
+  }
 }
 
 test('CRUD-P1: Create book via API and verify on UI [Use Case]', async ({ authenticatedPage, api }) => {
-  const t = new CrudP1(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new TestAction(authenticatedPage, pre.book);
+  const post = new Postconditions(api, pre.book.id);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

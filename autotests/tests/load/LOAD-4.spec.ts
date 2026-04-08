@@ -1,12 +1,16 @@
 import { test, expect } from '../../fixtures/test.fixture';
-import { BaseTest } from '../../helpers/BaseTest';
-
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../helpers/BaseTest';
 const API_URL = 'http://localhost:4000/api';
 
-// No packet loss: every request under heavy load must succeed (no dropped connections)
-class Load4 extends BaseTest {
-  async preconditions() {}
+// No packet loss: every request under heavy load must succeed
 
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup — testing against seeded data
+  }
+}
+
+class TestAction extends BaseTestAction {
   async execute() {
     const totalRequests = 1000;
     const batchSize = 100;
@@ -19,9 +23,8 @@ class Load4 extends BaseTest {
         const reqIndex = batch * batchSize + i + 1;
         return fetch(`${API_URL}/books?page=1&limit=12`)
           .then(res => {
-            if (res.ok) {
-              succeeded++;
-            } else {
+            if (res.ok) succeeded++;
+            else {
               failed++;
               errors.push(`Request #${reqIndex}: HTTP ${res.status}`);
             }
@@ -43,18 +46,23 @@ class Load4 extends BaseTest {
     expect(failed).toBe(0);
     expect(succeeded).toBe(totalRequests);
   }
+}
 
-  async postconditions() {
+class Postconditions extends BasePostconditions {
+  async cleanup() {
     await this.api.cleanupAll();
   }
 }
 
 test('LOAD-4: No packet loss under load (1000 requests) [Performance]', async ({ authenticatedPage, api }) => {
-  const t = new Load4(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new TestAction(authenticatedPage);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

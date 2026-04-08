@@ -1,31 +1,52 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
-
+import { ApiHelper } from '../../../helpers/api';
 // Adds book to favorites via API, verifies book appears on favorites page
-class FavP2 extends BaseTest {
-  private bookTitle!: string;
-  async preconditions() {
+
+class Preconditions extends BasePreconditions {
+  bookTitle!: string;
+  bookId!: number;
+
+  async setup() {
     const books = await this.api.getBooks({ limit: '1' });
     const book = books.extract('books')[0];
     this.bookTitle = book.title;
+    this.bookId = book.id;
     await this.api.addFavorite(book.id);
   }
+}
+
+class TestAction extends BaseTestAction {
+  constructor(page: Page, private bookTitle: string) { super(page); }
+
   async execute() {
     const fav = new FavoritesPage(this.page);
     await fav.open();
     await expect(fav.bookCount).toBeVisible();
     await expect(fav.bookByTitle(this.bookTitle)).toBeVisible();
   }
-  async postconditions() {}
+}
+
+class Postconditions extends BasePostconditions {
+  constructor(api: ApiHelper, private bookId: number) { super(api); }
+
+  async cleanup() {
+    await this.api.removeFavorite(this.bookId);
+    await this.api.cleanupAll();
+  }
 }
 
 test('FAV-P2: Add favorite via API and verify on page [Use Case]', async ({ authenticatedPage, api }) => {
-  const t = new FavP2(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new TestAction(authenticatedPage, pre.bookTitle);
+  const post = new Postconditions(api, pre.bookId);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

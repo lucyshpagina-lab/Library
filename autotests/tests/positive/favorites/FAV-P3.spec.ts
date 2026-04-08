@@ -1,27 +1,46 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTestAction, BasePostconditions } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
-
+import { ApiHelper } from '../../../helpers/api';
 // Adds favorite via API, verifies heart icon in header is red and filled
-class FavP3 extends BaseTest {
-  async preconditions() {
+
+class Preconditions extends BasePreconditions {
+  bookId!: number;
+
+  async setup() {
     const books = await this.api.getBooks({ limit: '1' });
-    await this.api.addFavorite(books.extract('books')[0].id);
+    this.bookId = books.extract('books')[0].id;
+    await this.api.addFavorite(this.bookId);
   }
+}
+
+class TestAction extends BaseTestAction {
   async execute() {
     await new FavoritesPage(this.page).open();
     const heart = this.page.locator('header a[href="/favorites"] svg');
     await expect(heart).toHaveClass(/fill-red-500/);
   }
-  async postconditions() {}
+}
+
+class Postconditions extends BasePostconditions {
+  constructor(api: ApiHelper, private bookId: number) { super(api); }
+
+  async cleanup() {
+    await this.api.removeFavorite(this.bookId);
+    await this.api.cleanupAll();
+  }
 }
 
 test('FAV-P3: Red heart counter in header [State Transition]', async ({ authenticatedPage, api }) => {
-  const t = new FavP3(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new TestAction(authenticatedPage);
+  const post = new Postconditions(api, pre.bookId);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });
