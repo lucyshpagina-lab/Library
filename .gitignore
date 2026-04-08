@@ -12,3 +12,5 @@ server/uploads/
 
 autotests/report/
 autotests/test-results/
+test-results/
+*.png
