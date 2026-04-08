@@ -1,27 +1,51 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { ApiHelper } from '../../../helpers/api';
 
 // Compares login response times for existing vs non-existing email
-class AuthS4 extends BaseTest {
-  async preconditions() {}
-  async execute() {
+
+class Preconditions extends BasePreconditions {
+  email = '';
+  async setup() {
     const api = new ApiHelper();
-    const email = `timing-${Date.now()}@test.com`;
-    await api.register(email, `timing${Date.now()}`, 'Password123!');
-    const t1 = Date.now(); await api.login(email, 'wrong'); const d1 = Date.now() - t1;
-    const t2 = Date.now(); await api.login('fake@none.com', 'wrong'); const d2 = Date.now() - t2;
-    expect(Math.abs(d1 - d2)).toBeLessThan(500);
+    this.email = `timing-${Date.now()}@test.com`;
+    await api.register(this.email, `timing${Date.now()}`, 'Password123!');
   }
-  async postconditions() {}
 }
 
-test('AUTH-S4: Login timing attack check [Security]', async ({ page }) => {
-  const t = new AuthS4(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Test extends BaseTest {
+  constructor(
+    page: import('@playwright/test').Page,
+    private email: string,
+  ) {
+    super(page);
+  }
+  async execute() {
+    const api = new ApiHelper();
+    const t1 = Date.now();
+    await api.login(this.email, 'wrong');
+    const d1 = Date.now() - t1;
+    const t2 = Date.now();
+    await api.login('fake@none.com', 'wrong');
+    const d2 = Date.now() - t2;
+    expect(Math.abs(d1 - d2)).toBeLessThan(500);
+  }
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {}
+}
+
+test('AUTH-S4: Login timing attack check [Security]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new Test(page, pre.email);
+  const post = new Postconditions(api);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

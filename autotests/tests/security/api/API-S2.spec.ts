@@ -1,22 +1,34 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 
 // Sends random string as JWT token, verifies 401
-class ApiS2 extends BaseTest {
-  async preconditions() {}
-  async execute() {
-    const res = await fetch('http://localhost:4000/api/auth/me', { headers: { Cookie: 'token=not-a-jwt' } });
-    expect(res.status).toBe(401);
-  }
-  async postconditions() {}
+
+class Preconditions extends BasePreconditions {
+  async setup() {}
 }
 
-test('API-S2: Random string as JWT token rejected [Token Security]', async ({ page }) => {
-  const t = new ApiS2(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Test extends BaseTest {
+  async execute() {
+    const res = await fetch('http://localhost:4000/api/auth/me', {
+      headers: { Cookie: 'token=not-a-jwt' },
+    });
+    expect(res.status).toBe(401);
+  }
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {}
+}
+
+test('API-S2: Random string as JWT token rejected [Token Security]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  const action = new Test(page);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

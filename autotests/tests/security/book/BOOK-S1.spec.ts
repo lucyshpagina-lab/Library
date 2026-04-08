@@ -1,13 +1,28 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 
 // Creates book with XSS in title, verifies no script execution on UI
-class BookS1 extends BaseTest {
-  private bookId!: number;
-  async preconditions() {
-    const res = await this.api.createBook({ title: '<img src=x onerror=alert("xss")>', author: 'Safe', genre: 'Horror', content: 'Normal.' });
+
+class Preconditions extends BasePreconditions {
+  bookId!: number;
+  async setup() {
+    const res = await this.api.createBook({
+      title: '<img src=x onerror=alert("xss")>',
+      author: 'Safe',
+      genre: 'Horror',
+      content: 'Normal.',
+    });
     if (res.status === 201) this.bookId = res.extract('book.id');
+  }
+}
+
+class Test extends BaseTest {
+  constructor(
+    page: import('@playwright/test').Page,
+    private bookId: number,
+  ) {
+    super(page);
   }
   async execute() {
     if (this.bookId) {
@@ -15,15 +30,30 @@ class BookS1 extends BaseTest {
       expect(await this.page.locator('img[src="x"]').count()).toBe(0);
     }
   }
-  async postconditions() { if (this.bookId) await this.api.deleteBook(this.bookId); }
+}
+
+class Postconditions extends BasePostconditions {
+  constructor(
+    api: import('../../../helpers/api').ApiHelper,
+    private bookId: number,
+  ) {
+    super(api);
+  }
+  async cleanup() {
+    if (this.bookId) await this.api.deleteBook(this.bookId);
+  }
 }
 
 test('BOOK-S1: XSS in book title is escaped on UI [XSS]', async ({ authenticatedPage, api }) => {
-  const t = new BookS1(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  await test.step('PRECONDITIONS', () => pre.setup());
+
+  const action = new Test(authenticatedPage, pre.bookId);
+  const post = new Postconditions(api, pre.bookId);
+
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

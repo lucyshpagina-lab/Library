@@ -1,23 +1,38 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { LoginPage } from '../../../pages/LoginPage';
 
 // Injects SQL payload in login email, verifies login fails safely
-class AuthS1 extends BaseTest {
-  async preconditions() { await new LoginPage(this.page).open(); }
-  async execute() {
-    await new LoginPage(this.page).login("' OR 1=1 --", 'password');
-    await expect(new LoginPage(this.page).tryAgainButton.or(this.page.locator('form'))).toBeVisible({ timeout: 10000 });
+
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No API setup needed — testing against login form
   }
-  async postconditions() {}
 }
 
-test('AUTH-S1: SQL injection in login email [SQL Injection]', async ({ page }) => {
-  const t = new AuthS1(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Test extends BaseTest {
+  async execute() {
+    await new LoginPage(this.page).open();
+    await new LoginPage(this.page).login("' OR 1=1 --", 'password');
+    await expect(new LoginPage(this.page).tryAgainButton.or(this.page.locator('form'))).toBeVisible(
+      { timeout: 10000 },
+    );
+  }
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {}
+}
+
+test('AUTH-S1: SQL injection in login email [SQL Injection]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  const action = new Test(page);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });
