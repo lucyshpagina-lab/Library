@@ -19,7 +19,7 @@ function CatalogContent() {
   const [search, setSearch] = useState(searchParams.get('search') || '');
   const [genre, setGenre] = useState(searchParams.get('genre') || '');
   const [sortBy, setSortBy] = useState<BookFilters['sortBy']>(
-    (searchParams.get('sortBy') as BookFilters['sortBy']) || 'date'
+    (searchParams.get('sortBy') as BookFilters['sortBy']) || 'date',
   );
   const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
 
@@ -29,7 +29,7 @@ function CatalogContent() {
     search: debouncedSearch || undefined,
     genre: genre || undefined,
     sortBy,
-    order: (sortBy === 'title' || sortBy === 'author') ? 'asc' : 'desc',
+    order: sortBy === 'title' || sortBy === 'author' ? 'asc' : 'desc',
     page,
     limit: 12,
   });
@@ -50,19 +50,28 @@ function CatalogContent() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
         <div className="flex-1">
-          <SearchBar value={search} onChange={(v) => { setSearch(v); setPage(1); }} />
+          <SearchBar
+            value={search}
+            onChange={(v) => {
+              setSearch(v);
+              setPage(1);
+            }}
+          />
         </div>
         <select
           value={sortBy}
-          onChange={(e) => { setSortBy(e.target.value as BookFilters['sortBy']); setPage(1); }}
-          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent text-center appearance-none"
-          style={{ padding: '10px' }}
+          onChange={(e) => {
+            setSortBy(e.target.value as BookFilters['sortBy']);
+            setPage(1);
+          }}
+          className="bg-white border border-gray-200 rounded-[10px] text-text-primary focus:outline-none focus:ring-2 focus:ring-pink-accent text-left appearance-none"
+          style={{ padding: '10px 32px 10px 12px' }}
           aria-label="Sort books"
         >
-          <option value="date">🕐 Newest</option>
-          <option value="rating">⭐ Top Rated</option>
-          <option value="title">🔤 Title A-Z</option>
-          <option value="author">✍️ Author A-Z</option>
+          <option value="date">🕐&ensp;Newest</option>
+          <option value="rating">⭐&ensp;Top Rated</option>
+          <option value="title">🔤&ensp;Title A-Z</option>
+          <option value="author">✍️&ensp;Author A-Z</option>
         </select>
       </div>
 
@@ -76,7 +85,10 @@ function CatalogContent() {
           <Button
             variant={genre === '' ? 'primary' : 'secondary'}
             size="sm"
-            onClick={() => { setGenre(''); setPage(1); }}
+            onClick={() => {
+              setGenre('');
+              setPage(1);
+            }}
             className="flex-shrink-0"
           >
             All
@@ -86,7 +98,10 @@ function CatalogContent() {
               key={g}
               variant={genre === g ? 'primary' : 'secondary'}
               size="sm"
-              onClick={() => { setGenre(g); setPage(1); }}
+              onClick={() => {
+                setGenre(g);
+                setPage(1);
+              }}
               className="flex-shrink-0"
             >
               {g}
@@ -102,16 +117,20 @@ function CatalogContent() {
         <div className="text-center py-12">
           <AlertCircle className="w-10 h-10 text-red-400 mx-auto mb-3" />
           <p className="text-text-secondary mb-4">Something went wrong loading books.</p>
-          <Button variant="secondary" onClick={() => refetch()}>Try Again</Button>
+          <Button variant="secondary" onClick={() => refetch()}>
+            Try Again
+          </Button>
         </div>
-      ) : data && (
-        <>
-          <p className="text-sm text-text-secondary mb-4">
-            {data.total} book{data.total !== 1 ? 's' : ''} found
-          </p>
-          <BookGrid books={data.books} />
-          <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
-        </>
+      ) : (
+        data && (
+          <>
+            <p className="text-sm text-text-secondary mb-4">
+              {data.total} book{data.total !== 1 ? 's' : ''} found
+            </p>
+            <BookGrid books={data.books} />
+            <Pagination page={data.page} totalPages={data.totalPages} onPageChange={setPage} />
+          </>
+        )
       )}
     </>
   );
