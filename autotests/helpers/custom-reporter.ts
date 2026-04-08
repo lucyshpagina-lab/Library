@@ -11,43 +11,81 @@ const EMOJIS: Record<string, string> = {
 };
 
 const PASS_JOKES = [
-  "All tests passed! Time to mass-deploy straight to production. What could go wrong? 🚀💥",
-  "100% pass rate! Your code is so clean, it could eat off itself. 🧹✨",
-  "Every test green! Even the intern is impressed. 👶👏",
-  "All passed! Somewhere, a QA engineer just shed a tear of joy. 😭💚",
-  "Perfect score! Your tests are more reliable than my WiFi. 📡",
-  "All green! The bugs have left the building. Elvis would be proud. 🕺",
-  "100% passed! Quick, screenshot this before it changes! 📸",
-  "Flawless victory! FATALITY on all bugs! 🎮💀",
+  'All tests passed! Time to mass-deploy straight to production. What could go wrong? 🚀💥',
+  '100% pass rate! Your code is so clean, it could eat off itself. 🧹✨',
+  'Every test green! Even the intern is impressed. 👶👏',
+  'All passed! Somewhere, a QA engineer just shed a tear of joy. 😭💚',
+  'Perfect score! Your tests are more reliable than my WiFi. 📡',
+  'All green! The bugs have left the building. Elvis would be proud. 🕺',
+  '100% passed! Quick, screenshot this before it changes! 📸',
+  'Flawless victory! FATALITY on all bugs! 🎮💀',
 ];
 
 const FAIL_JOKES = [
-  "Some tests failed... but hey, at least they FOUND the bugs! Better here than in prod, right? RIGHT? 😅",
+  'Some tests failed... but hey, at least they FOUND the bugs! Better here than in prod, right? RIGHT? 😅',
   "Failed tests detected! Time to blame the framework. It's never our code. 🤷",
-  "Tests failed. Have you tried turning it off and on again? 🔄",
+  'Tests failed. Have you tried turning it off and on again? 🔄',
   "Houston, we have a problem. But it's fine. Everything is fine. 🔥🐕☕🔥",
-  "Some tests failed... Looks like the code needs a hug. 🤗🐛",
+  'Some tests failed... Looks like the code needs a hug. 🤗🐛',
   "Red tests! Don't panic. Panic is for people who don't have git revert. 😏",
   "Failed! The code just said 'it's not a bug, it's a feature' and crashed. 💫",
 ];
 
 const FUN_FACTS = [
-  "🦕 Fun fact: The first computer bug was an actual moth found in a relay of the Harvard Mark II computer in 1947.",
-  "🎮 Fun fact: The Konami Code (↑↑↓↓←→←→BA) works on some websites. Try it!",
-  "🐧 Fun fact: Linux was created by Linus Torvalds in 1991 when he was just 21 years old.",
+  '🦕 Fun fact: The first computer bug was an actual moth found in a relay of the Harvard Mark II computer in 1947.',
+  '🎮 Fun fact: The Konami Code (↑↑↓↓←→←→BA) works on some websites. Try it!',
+  '🐧 Fun fact: Linux was created by Linus Torvalds in 1991 when he was just 21 years old.',
   "☕ Fun fact: Java was originally called 'Oak' after an oak tree outside James Gosling's office.",
-  "🐍 Fun fact: Python is named after Monty Python, not the snake.",
-  "📖 Fun fact: The Library of Alexandria held ~400,000 scrolls. Your Library app has 200 books. Getting there!",
+  '🐍 Fun fact: Python is named after Monty Python, not the snake.',
+  '📖 Fun fact: The Library of Alexandria held ~400,000 scrolls. Your Library app has 200 books. Getting there!',
   "🤖 Fun fact: The term 'robot' comes from Czech 'robota' meaning forced labor.",
-  "🌐 Fun fact: The first website ever created is still online: info.cern.ch",
+  '🌐 Fun fact: The first website ever created is still online: info.cern.ch',
 ];
 
 const MOTIVATIONAL = [
-  "Remember: every expert was once a beginner who refused to give up! 💪",
+  'Remember: every expert was once a beginner who refused to give up! 💪',
   "Code is like humor. When you have to explain it, it's bad. — Cory House 😄",
-  "First, solve the problem. Then, write the code. — John Johnson 🧠",
-  "The best error message is the one that never shows up. — Thomas Fuchs 🎯",
+  'First, solve the problem. Then, write the code. — John Johnson 🧠',
+  'The best error message is the one that never shows up. — Thomas Fuchs 🎯',
 ];
+
+interface TabCategory {
+  key: string;
+  label: string;
+  color: string;
+  matcher: (filePath: string) => boolean;
+}
+
+const TAB_CATEGORIES: TabCategory[] = [
+  {
+    key: 'positive',
+    label: 'Positive',
+    color: '#10b981',
+    matcher: (f) => f.includes('/positive/'),
+  },
+  {
+    key: 'negative',
+    label: 'Negative',
+    color: '#ef4444',
+    matcher: (f) => f.includes('/negative/'),
+  },
+  {
+    key: 'security',
+    label: 'Security',
+    color: '#8b5cf6',
+    matcher: (f) => f.includes('/security/'),
+  },
+  { key: 'load', label: 'Load', color: '#60a5fa', matcher: (f) => f.includes('/load/') },
+  { key: 'regression', label: 'Regression', color: '#f59e0b', matcher: (f) => true },
+];
+
+function classifyTest(filePath: string): string {
+  if (filePath.includes('/positive/')) return 'positive';
+  if (filePath.includes('/negative/')) return 'negative';
+  if (filePath.includes('/security/')) return 'security';
+  if (filePath.includes('/load/')) return 'load';
+  return 'regression';
+}
 
 class FunReporter implements Reporter {
   private results: { test: TestCase; result: TestResult }[] = [];
@@ -69,25 +107,41 @@ class FunReporter implements Reporter {
     const duration = (result.duration / 1000).toFixed(1);
     const num = String(this.testNumber).padStart(2, ' ');
     const filePath = test.location.file;
-    const type = filePath.includes('/positive/') ? '\x1b[42m P \x1b[0m' :
-                 filePath.includes('/negative/') ? '\x1b[41m N \x1b[0m' :
-                 filePath.includes('/security/') ? '\x1b[45m S \x1b[0m' : '   ';
+    const type = filePath.includes('/positive/')
+      ? '\x1b[42m P \x1b[0m'
+      : filePath.includes('/negative/')
+        ? '\x1b[41m N \x1b[0m'
+        : filePath.includes('/security/')
+          ? '\x1b[45m S \x1b[0m'
+          : filePath.includes('/load/')
+            ? '\x1b[44m L \x1b[0m'
+            : '   ';
     console.log(`  ${emoji} #${num} ${type} │ ${test.title} (${duration}s)`);
   }
 
   onEnd(_result: FullResult) {
     const duration = ((Date.now() - this.startTime) / 1000).toFixed(1);
-    const passed = this.results.filter(r => r.result.status === 'passed').length;
-    const failed = this.results.filter(r => r.result.status === 'failed').length;
-    const skipped = this.results.filter(r => r.result.status === 'skipped').length;
+    const passed = this.results.filter((r) => r.result.status === 'passed').length;
+    const failed = this.results.filter((r) => r.result.status === 'failed').length;
+    const skipped = this.results.filter((r) => r.result.status === 'skipped').length;
     const total = this.results.length;
 
-    const positive = this.results.filter(r => r.test.location.file.includes('/positive/')).length;
-    const negative = this.results.filter(r => r.test.location.file.includes('/negative/')).length;
-    const security = this.results.filter(r => r.test.location.file.includes('/security/')).length;
-    const posPass = this.results.filter(r => r.test.location.file.includes('/positive/') && r.result.status === 'passed').length;
-    const negPass = this.results.filter(r => r.test.location.file.includes('/negative/') && r.result.status === 'passed').length;
-    const secPass = this.results.filter(r => r.test.location.file.includes('/security/') && r.result.status === 'passed').length;
+    const positive = this.results.filter((r) => r.test.location.file.includes('/positive/')).length;
+    const negative = this.results.filter((r) => r.test.location.file.includes('/negative/')).length;
+    const security = this.results.filter((r) => r.test.location.file.includes('/security/')).length;
+    const load = this.results.filter((r) => r.test.location.file.includes('/load/')).length;
+    const posPass = this.results.filter(
+      (r) => r.test.location.file.includes('/positive/') && r.result.status === 'passed',
+    ).length;
+    const negPass = this.results.filter(
+      (r) => r.test.location.file.includes('/negative/') && r.result.status === 'passed',
+    ).length;
+    const secPass = this.results.filter(
+      (r) => r.test.location.file.includes('/security/') && r.result.status === 'passed',
+    ).length;
+    const loadPass = this.results.filter(
+      (r) => r.test.location.file.includes('/load/') && r.result.status === 'passed',
+    ).length;
 
     console.log('\n' + '═'.repeat(60));
     console.log(`  📊 SCOREBOARD`);
@@ -99,11 +153,13 @@ class FunReporter implements Reporter {
     console.log(`  🟢 Positive:  ${posPass}/${positive}`);
     console.log(`  🔴 Negative:  ${negPass}/${negative}`);
     console.log(`  🟣 Security:  ${secPass}/${security}`);
+    console.log(`  🔵 Load:      ${loadPass}/${load}`);
     console.log('═'.repeat(60));
 
-    const joke = failed === 0
-      ? PASS_JOKES[Math.floor(Math.random() * PASS_JOKES.length)]
-      : FAIL_JOKES[Math.floor(Math.random() * FAIL_JOKES.length)];
+    const joke =
+      failed === 0
+        ? PASS_JOKES[Math.floor(Math.random() * PASS_JOKES.length)]
+        : FAIL_JOKES[Math.floor(Math.random() * FAIL_JOKES.length)];
     const fact = FUN_FACTS[Math.floor(Math.random() * FUN_FACTS.length)];
     const motivation = MOTIVATIONAL[Math.floor(Math.random() * MOTIVATIONAL.length)];
 
@@ -111,116 +167,269 @@ class FunReporter implements Reporter {
     console.log(`\n  ${fact}`);
     console.log(`\n  💡 ${motivation}`);
 
-    this.generateHtmlReport(passed, failed, skipped, total, duration, joke, fact, motivation,
-      { positive, negative, security, posPass, negPass, secPass });
+    this.generateHtmlReport(passed, failed, skipped, total, duration, joke, fact, motivation, {
+      positive,
+      negative,
+      security,
+      load,
+      posPass,
+      negPass,
+      secPass,
+      loadPass,
+    });
   }
 
-  private generateHtmlReport(passed: number, failed: number, skipped: number, total: number, duration: string, joke: string, fact: string, motivation: string,
-    types: { positive: number; negative: number; security: number; posPass: number; negPass: number; secPass: number }) {
+  private generateHtmlReport(
+    passed: number,
+    failed: number,
+    skipped: number,
+    total: number,
+    duration: string,
+    joke: string,
+    fact: string,
+    motivation: string,
+    types: {
+      positive: number;
+      negative: number;
+      security: number;
+      load: number;
+      posPass: number;
+      negPass: number;
+      secPass: number;
+      loadPass: number;
+    },
+  ) {
     const reportDir = path.join(__dirname, '..', 'report');
+    const dataDir = path.join(reportDir, 'data');
     if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-    const testsByFile: Record<string, { test: TestCase; result: TestResult; num: number }[]> = {};
+    // Group results by category, then by file within each category
+    const categorized: Record<string, { test: TestCase; result: TestResult; num: number }[]> = {
+      positive: [],
+      negative: [],
+      security: [],
+      load: [],
+      regression: [],
+    };
+
     let num = 0;
     for (const r of this.results) {
       num++;
-      const file = r.test.location.file.split('/').pop() || 'unknown';
-      if (!testsByFile[file]) testsByFile[file] = [];
-      testsByFile[file].push({ ...r, num });
+      const cat = classifyTest(r.test.location.file);
+      categorized[cat].push({ ...r, num });
     }
 
-    const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
-    const moodEmoji = passRate === 100 ? '🎉🥳🏆' : passRate >= 80 ? '😊👍' : passRate >= 50 ? '😬🔧' : '😱🆘🚒';
-    const moodText = passRate === 100 ? 'PERFECT! ALL TESTS PASSED!' :
-      passRate >= 80 ? 'Almost there! Just a few hiccups.' :
-      passRate >= 50 ? 'Hmm... we\'ve got some work to do.' : 'MAYDAY MAYDAY! BUGS EVERYWHERE!';
+    // Compute per-category stats
+    const catStats: Record<string, { passed: number; total: number; failed: number }> = {};
+    for (const cat of Object.keys(categorized)) {
+      const items = categorized[cat];
+      catStats[cat] = {
+        total: items.length,
+        passed: items.filter((i) => i.result.status === 'passed').length,
+        failed: items.filter((i) => i.result.status === 'failed').length,
+      };
+    }
 
-    const barColor = passRate === 100 ? '#10b981' : passRate >= 80 ? '#84cc16' : passRate >= 50 ? '#f59e0b' : '#ef4444';
-
-    let testRows = '';
-    for (const [file, tests] of Object.entries(testsByFile)) {
-      const fileIcon = file.includes('auth') ? '🔐' : file.includes('catalog') ? '📚' : file.includes('crud') ? '📖' : file.includes('interact') ? '⭐' : file.includes('fav') ? '❤️' : file.includes('api') ? '🛡️' : '📋';
-      const fileType = file.includes('positive') ? '<span class="badge badge-pos">POSITIVE</span>' :
-                        file.includes('negative') ? '<span class="badge badge-neg">NEGATIVE</span>' :
-                        file.includes('security') ? '<span class="badge badge-sec">SECURITY</span>' : '';
-      const filePass = tests.filter(t => t.result.status === 'passed').length;
-      const fileTotal = tests.length;
-      testRows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} ${fileType} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
-
-      for (const { test: t, result: r, num: n } of tests) {
-        const emoji = EMOJIS[r.status] || '❓';
-        const statusClass = r.status === 'passed' ? 'pass' : r.status === 'failed' ? 'fail' : 'skip';
-        const dur = (r.duration / 1000).toFixed(2);
-
-        let stepsHtml = '';
-        if (r.steps && r.steps.length > 0) {
-          stepsHtml = '<div class="steps">';
-          for (const step of r.steps) {
-            const sIcon = step.error ? '❌' : '✅';
-            const sDur = step.duration ? ` <span class="step-dur">${(step.duration / 1000).toFixed(2)}s</span>` : '';
-            const sClass = step.error ? 'step-fail' : 'step-pass';
-            stepsHtml += `<div class="step ${sClass}">${sIcon} ${esc(step.title)}${sDur}</div>`;
-            if (step.steps) {
-              for (const sub of step.steps) {
-                const subIcon = sub.error ? '❌' : '✅';
-                stepsHtml += `<div class="step sub ${sub.error ? 'step-fail' : 'step-pass'}">${subIcon} ${esc(sub.title)}</div>`;
-              }
-            }
-          }
-          stepsHtml += '</div>';
-        }
-
-        let errorHtml = '';
-        if (r.errors?.length) {
-          errorHtml = `<div class="error-box">💥 ${esc((r.errors[0]?.message || 'Unknown error').substring(0, 500))}</div>`;
-        }
-
-        let screenshotHtml = '';
-        if (r.status === 'failed' && r.attachments) {
-          for (const att of r.attachments) {
-            if (att.contentType?.startsWith('image/') && att.path) {
-              try {
-                const imgData = fs.readFileSync(att.path);
-                const base64 = imgData.toString('base64');
-                screenshotHtml += `<div class="screenshot"><p class="screenshot-label">📸 Screenshot on failure:</p><img src="data:${att.contentType};base64,${base64}" alt="Failed test screenshot" /></div>`;
-              } catch {}
-            }
-          }
-        }
-
-        // Extract technique tags like [EP], [BVA], [Use Case] from title
-        const tagRegex = /\[([^\]]+)\]/g;
-        let titleClean = esc(t.title);
-        let tags = '';
-        let match;
-        while ((match = tagRegex.exec(t.title)) !== null) {
-          const tag = match[1];
-          const tagClass = tag.includes('EP') ? 'tag-ep' : tag.includes('BVA') ? 'tag-bva' :
-            tag.includes('State') ? 'tag-state' : tag.includes('Use Case') || tag.includes('Scenario') ? 'tag-uc' :
-            tag.includes('Cause') ? 'tag-ce' : tag.includes('SQL') ? 'tag-sql' : tag.includes('XSS') ? 'tag-xss' :
-            tag.includes('Auth') || tag.includes('Token') || tag.includes('Security') ? 'tag-sec' :
-            tag.includes('DoS') ? 'tag-dos' : 'tag-other';
-          tags += `<span class="technique-tag ${tagClass}">${esc(tag)}</span>`;
-          titleClean = titleClean.replace(`[${esc(tag)}]`, '');
-        }
-
-        testRows += `
-          <tr class="test-row ${statusClass}">
-            <td class="test-num">#${n}</td>
-            <td class="test-emoji">${emoji}</td>
-            <td class="test-info">
-              <div class="test-name">${titleClean.trim()} ${tags}</div>
-              ${stepsHtml}
-              ${errorHtml}
-              ${screenshotHtml}
-            </td>
-            <td class="test-dur">${dur}s</td>
-            <td class="test-status status-${statusClass}">${r.status.toUpperCase()}</td>
-          </tr>`;
+    // Determine default active tab: first with failures, or 'positive'
+    let defaultTab = 'positive';
+    for (const cat of TAB_CATEGORIES) {
+      if (catStats[cat.key].failed > 0) {
+        defaultTab = cat.key;
+        break;
       }
     }
 
-    const randomAnimal = ['🦄', '🐙', '🦊', '🐲', '🦋', '🐬', '🦜', '🐢'][Math.floor(Math.random() * 8)];
+    const passRate = total > 0 ? Math.round((passed / total) * 100) : 0;
+    const moodEmoji =
+      passRate === 100 ? '🎉🥳🏆' : passRate >= 80 ? '😊👍' : passRate >= 50 ? '😬🔧' : '😱🆘🚒';
+    const moodText =
+      passRate === 100
+        ? 'PERFECT! ALL TESTS PASSED!'
+        : passRate >= 80
+          ? 'Almost there! Just a few hiccups.'
+          : passRate >= 50
+            ? "Hmm... we've got some work to do."
+            : 'MAYDAY MAYDAY! BUGS EVERYWHERE!';
+
+    const barColor =
+      passRate === 100
+        ? '#10b981'
+        : passRate >= 80
+          ? '#84cc16'
+          : passRate >= 50
+            ? '#f59e0b'
+            : '#ef4444';
+
+    // Build test rows for each category
+    let screenshotCounter = 0;
+    const tabContents: Record<string, string> = {};
+
+    for (const cat of TAB_CATEGORIES) {
+      const items = categorized[cat.key];
+      if (items.length === 0) {
+        tabContents[cat.key] =
+          `<div class="empty-tab">No ${cat.label.toLowerCase()} tests in this run.</div>`;
+        continue;
+      }
+
+      // Group by file
+      const byFile: Record<string, typeof items> = {};
+      for (const item of items) {
+        const file = item.test.location.file.split('/').pop() || 'unknown';
+        if (!byFile[file]) byFile[file] = [];
+        byFile[file].push(item);
+      }
+
+      let rows = '';
+      for (const [file, tests] of Object.entries(byFile)) {
+        const fileIcon = file.includes('auth')
+          ? '🔐'
+          : file.includes('catalog')
+            ? '📚'
+            : file.includes('crud')
+              ? '📖'
+              : file.includes('interact')
+                ? '⭐'
+                : file.includes('fav')
+                  ? '❤️'
+                  : file.includes('api')
+                    ? '🛡️'
+                    : file.includes('load')
+                      ? '⚡'
+                      : '📋';
+        const fileType = file.includes('positive')
+          ? '<span class="badge badge-pos">POSITIVE</span>'
+          : file.includes('negative')
+            ? '<span class="badge badge-neg">NEGATIVE</span>'
+            : file.includes('security')
+              ? '<span class="badge badge-sec">SECURITY</span>'
+              : file.includes('load')
+                ? '<span class="badge badge-load">LOAD</span>'
+                : '';
+        const filePass = tests.filter((t) => t.result.status === 'passed').length;
+        const fileTotal = tests.length;
+        rows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} ${fileType} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
+
+        for (const { test: t, result: r, num: n } of tests) {
+          const emoji = EMOJIS[r.status] || '❓';
+          const statusClass =
+            r.status === 'passed' ? 'pass' : r.status === 'failed' ? 'fail' : 'skip';
+          const dur = (r.duration / 1000).toFixed(2);
+
+          let stepsHtml = '';
+          if (r.steps && r.steps.length > 0) {
+            stepsHtml = '<div class="steps">';
+            for (const step of r.steps) {
+              const sIcon = step.error ? '❌' : '✅';
+              const sDur = step.duration
+                ? ` <span class="step-dur">${(step.duration / 1000).toFixed(2)}s</span>`
+                : '';
+              const sClass = step.error ? 'step-fail' : 'step-pass';
+              stepsHtml += `<div class="step ${sClass}">${sIcon} ${esc(step.title)}${sDur}</div>`;
+              if (step.steps) {
+                for (const sub of step.steps) {
+                  const subIcon = sub.error ? '❌' : '✅';
+                  stepsHtml += `<div class="step sub ${sub.error ? 'step-fail' : 'step-pass'}">${subIcon} ${esc(sub.title)}</div>`;
+                }
+              }
+            }
+            stepsHtml += '</div>';
+          }
+
+          let errorHtml = '';
+          if (r.errors?.length) {
+            errorHtml = `<div class="error-box">💥 ${esc((r.errors[0]?.message || 'Unknown error').substring(0, 500))}</div>`;
+          }
+
+          let screenshotHtml = '';
+          if (r.status === 'failed' && r.attachments) {
+            for (const att of r.attachments) {
+              if (att.contentType?.startsWith('image/') && att.path) {
+                try {
+                  if (fs.existsSync(att.path)) {
+                    screenshotCounter++;
+                    const ext = path.extname(att.path) || '.png';
+                    const destName = `screenshot-${screenshotCounter}${ext}`;
+                    const destPath = path.join(dataDir, destName);
+                    fs.copyFileSync(att.path, destPath);
+                    screenshotHtml += `<div class="screenshot"><p class="screenshot-label">📸 Screenshot on failure:</p><img src="data/${destName}" alt="Failed test screenshot" /></div>`;
+                  }
+                } catch {}
+              }
+            }
+          }
+
+          // Extract technique tags like [EP], [BVA], [Use Case] from title
+          const tagRegex = /\[([^\]]+)\]/g;
+          let titleClean = esc(t.title);
+          let tags = '';
+          let match;
+          while ((match = tagRegex.exec(t.title)) !== null) {
+            const tag = match[1];
+            const tagClass = tag.includes('EP')
+              ? 'tag-ep'
+              : tag.includes('BVA')
+                ? 'tag-bva'
+                : tag.includes('State')
+                  ? 'tag-state'
+                  : tag.includes('Use Case') || tag.includes('Scenario')
+                    ? 'tag-uc'
+                    : tag.includes('Cause')
+                      ? 'tag-ce'
+                      : tag.includes('SQL')
+                        ? 'tag-sql'
+                        : tag.includes('XSS')
+                          ? 'tag-xss'
+                          : tag.includes('Auth') ||
+                              tag.includes('Token') ||
+                              tag.includes('Security')
+                            ? 'tag-sec'
+                            : tag.includes('DoS')
+                              ? 'tag-dos'
+                              : 'tag-other';
+            tags += `<span class="technique-tag ${tagClass}">${esc(tag)}</span>`;
+            titleClean = titleClean.replace(`[${esc(tag)}]`, '');
+          }
+
+          rows += `
+            <tr class="test-row ${statusClass}">
+              <td class="test-num">#${n}</td>
+              <td class="test-emoji">${emoji}</td>
+              <td class="test-info">
+                <div class="test-name">${titleClean.trim()} ${tags}</div>
+                ${stepsHtml}
+                ${errorHtml}
+                ${screenshotHtml}
+              </td>
+              <td class="test-dur">${dur}s</td>
+              <td class="test-status status-${statusClass}">${r.status.toUpperCase()}</td>
+            </tr>`;
+        }
+      }
+
+      tabContents[cat.key] =
+        `<table><thead><tr><th>#</th><th></th><th>Test</th><th>Time</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    // Build tab buttons HTML
+    let tabButtonsHtml = '';
+    for (const cat of TAB_CATEGORIES) {
+      const stats = catStats[cat.key];
+      const isActive = cat.key === defaultTab ? ' active' : '';
+      tabButtonsHtml += `<button class="tab-btn${isActive}" data-tab="${cat.key}" style="--tab-color:${cat.color}">${cat.label} <span class="tab-count">${stats.passed}/${stats.total}</span></button>`;
+    }
+
+    // Build tab content panels
+    let tabPanelsHtml = '';
+    for (const cat of TAB_CATEGORIES) {
+      const isActive = cat.key === defaultTab ? ' active' : '';
+      tabPanelsHtml += `<div class="tab-panel${isActive}" data-tab="${cat.key}">${tabContents[cat.key]}</div>`;
+    }
+
+    const randomAnimal = ['🦄', '🐙', '🦊', '🐲', '🦋', '🐬', '🦜', '🐢'][
+      Math.floor(Math.random() * 8)
+    ];
     const now = new Date();
 
     const html = `<!DOCTYPE html>
@@ -257,7 +466,18 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .fun-card h3{font-size:.85rem;opacity:.5;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:1px}
 .fun-card p{font-size:.95rem;line-height:1.5}
 
-.table-wrap{background:rgba(255,255,255,.06);border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:1.5rem}
+/* Tabs */
+.tabs-nav{display:flex;gap:.5rem;margin-bottom:0;flex-wrap:wrap}
+.tab-btn{padding:.55rem 1.2rem;border:2px solid var(--tab-color);background:transparent;color:var(--tab-color);border-radius:99px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;outline:none;font-family:inherit}
+.tab-btn:hover{background:color-mix(in srgb,var(--tab-color) 20%,transparent)}
+.tab-btn.active{background:var(--tab-color);color:#fff}
+.tab-count{font-weight:400;opacity:.85;margin-left:2px}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.tabs-content{background:rgba(255,255,255,.06);border-radius:0 0 16px 16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-top:none;margin-bottom:1.5rem}
+.tabs-nav-wrap{background:rgba(255,255,255,.06);border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;padding:.8rem 1rem .6rem}
+.empty-tab{padding:2rem;text-align:center;opacity:.5;font-size:.95rem}
+
 table{width:100%;border-collapse:collapse}
 th{padding:.8rem 1rem;text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;opacity:.5;border-bottom:1px solid rgba(255,255,255,.1)}
 td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
@@ -279,8 +499,8 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;color:#fca5a5;font-family:monospace;word-break:break-all}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
-.badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}
-.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}
+.badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}
+.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}.c-load .val{color:#60a5fa}
 
 .technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
 .tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
@@ -297,9 +517,9 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .footer a{color:#a5b4fc}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.card,.bar-wrap,.fun-card,.table-wrap{animation:fadeUp .5s ease forwards}
+.card,.bar-wrap,.fun-card,.tabs-nav-wrap,.tabs-content{animation:fadeUp .5s ease forwards}
 .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
-@media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}}
+@media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}.tabs-nav{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -308,7 +528,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 <div class="header">
   <h1>${randomAnimal} Library Test Report</h1>
   <div class="mood">${moodEmoji} ${moodText}</div>
-  <div class="date">Generated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()} | Playwright + TypeScript</div>
+  <div class="date">Generated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}</div>
 </div>
 
 <div class="cards">
@@ -319,10 +539,11 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
   <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
 </div>
 
-<div class="cards" style="grid-template-columns:repeat(3,1fr)">
+<div class="cards" style="grid-template-columns:repeat(4,1fr)">
   <div class="card c-pos"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
   <div class="card c-neg"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
   <div class="card c-sec"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
+  <div class="card c-load"><div class="icon">🔵</div><div class="val">${types.loadPass}/${types.load}</div><div class="lbl">Load</div></div>
 </div>
 
 <div class="bar-wrap">
@@ -347,11 +568,11 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
   </div>
 </div>
 
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>#</th><th></th><th>Test</th><th>Time</th><th>Status</th></tr></thead>
-    <tbody>${testRows}</tbody>
-  </table>
+<div class="tabs-nav-wrap">
+  <div class="tabs-nav">${tabButtonsHtml}</div>
+</div>
+<div class="tabs-content">
+  ${tabPanelsHtml}
 </div>
 
 <div class="footer">
@@ -359,6 +580,21 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 </div>
 
 </div>
+<script>
+(function(){
+  var btns = document.querySelectorAll('.tab-btn');
+  var panels = document.querySelectorAll('.tab-panel');
+  btns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      btns.forEach(function(b){ b.classList.remove('active'); });
+      panels.forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      var tab = btn.getAttribute('data-tab');
+      document.querySelector('.tab-panel[data-tab="' + tab + '"]').classList.add('active');
+    });
+  });
+})();
+</script>
 </body>
 </html>`;
 
@@ -369,7 +605,11 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 }
 
 function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 export default FunReporter;
