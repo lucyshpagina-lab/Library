@@ -60,23 +60,23 @@ const TAB_CATEGORIES: TabCategory[] = [
   {
     key: 'positive',
     label: 'Positive',
-    color: '#10b981',
+    color: '#34d399',
     matcher: (f) => f.includes('/positive/'),
   },
   {
     key: 'negative',
     label: 'Negative',
-    color: '#ef4444',
+    color: '#f87171',
     matcher: (f) => f.includes('/negative/'),
   },
   {
     key: 'security',
     label: 'Security',
-    color: '#8b5cf6',
+    color: '#a78bfa',
     matcher: (f) => f.includes('/security/'),
   },
-  { key: 'load', label: 'Load', color: '#60a5fa', matcher: (f) => f.includes('/load/') },
-  { key: 'regression', label: 'Regression', color: '#f59e0b', matcher: (f) => true },
+  { key: 'load', label: 'Load', color: '#7dd3fc', matcher: (f) => f.includes('/load/') },
+  { key: 'regression', label: 'Regression', color: '#fbbf24', matcher: (f) => true },
 ];
 
 function classifyTest(filePath: string): string {
@@ -312,18 +312,9 @@ class FunReporter implements Reporter {
                     : file.includes('load')
                       ? '⚡'
                       : '📋';
-        const fileType = file.includes('positive')
-          ? '<span class="badge badge-pos">POSITIVE</span>'
-          : file.includes('negative')
-            ? '<span class="badge badge-neg">NEGATIVE</span>'
-            : file.includes('security')
-              ? '<span class="badge badge-sec">SECURITY</span>'
-              : file.includes('load')
-                ? '<span class="badge badge-load">LOAD</span>'
-                : '<span class="badge badge-reg">REGRESSION</span>';
         const filePass = tests.filter((t) => t.result.status === 'passed').length;
         const fileTotal = tests.length;
-        rows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} ${fileType} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
+        rows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
 
         for (const { test: t, result: r, num: n } of tests) {
           const emoji = EMOJIS[r.status] || '❓';
@@ -334,7 +325,23 @@ class FunReporter implements Reporter {
           let stepsHtml = '';
           if (r.status === 'failed' && r.steps && r.steps.length > 0) {
             stepsHtml = '<div class="steps">';
-            for (const step of r.steps) {
+            const isInternalStep = (title: string) =>
+              /^(Before Hooks|After Hooks|Worker Cleanup|Fixture '|browserContext\.|page\.)/.test(
+                title,
+              );
+            const flattenSteps = (steps: typeof r.steps): typeof r.steps => {
+              const result: typeof r.steps = [];
+              for (const step of steps) {
+                if (isInternalStep(step.title)) {
+                  if (step.steps) result.push(...flattenSteps(step.steps));
+                } else {
+                  result.push(step);
+                }
+              }
+              return result;
+            };
+            const userSteps = flattenSteps(r.steps);
+            for (const step of userSteps) {
               const sIcon = step.error ? '❌' : '✅';
               const sDur = step.duration
                 ? ` <span class="step-dur">${(step.duration / 1000).toFixed(2)}s</span>`
@@ -342,7 +349,8 @@ class FunReporter implements Reporter {
               const sClass = step.error ? 'step-fail' : 'step-pass';
               stepsHtml += `<div class="step ${sClass}">${sIcon} ${esc(step.title)}${sDur}</div>`;
               if (step.steps) {
-                for (const sub of step.steps) {
+                const userSubs = step.steps.filter((s) => !isInternalStep(s.title));
+                for (const sub of userSubs) {
                   const subIcon = sub.error ? '❌' : '✅';
                   stepsHtml += `<div class="step sub ${sub.error ? 'step-fail' : 'step-pass'}">${subIcon} ${esc(sub.title)}</div>`;
                 }
@@ -422,23 +430,20 @@ class FunReporter implements Reporter {
         }
       }
 
-      tabContents[cat.key] =
-        `<table><thead><tr><th>#</th><th></th><th>Test</th><th>Time</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>`;
+      tabContents[cat.key] = `<table><tbody>${rows}</tbody></table>`;
     }
 
-    // Build tab buttons HTML
+    // Build tab buttons HTML — no tab active by default
     let tabButtonsHtml = '';
     for (const cat of TAB_CATEGORIES) {
       const stats = catStats[cat.key];
-      const isActive = cat.key === defaultTab ? ' active' : '';
-      tabButtonsHtml += `<button class="tab-btn${isActive}" data-tab="${cat.key}" style="--tab-color:${cat.color}">${cat.label} <span class="tab-count">${stats.passed}/${stats.total}</span></button>`;
+      tabButtonsHtml += `<button class="tab-btn" data-tab="${cat.key}" style="--tab-color:${cat.color}">${cat.label} <span class="tab-count">${stats.passed}/${stats.total}</span></button>`;
     }
 
-    // Build tab content panels
-    let tabPanelsHtml = '';
+    // Build tab content panels — none active by default, show welcome instead
+    let tabPanelsHtml = `<div class="tab-panel welcome-panel active" data-tab="welcome"><div class="welcome-msg"><div class="welcome-emoji">${failed > 0 ? '🐛' : '🧘'}</div><p>now buddy I walk you through the bugs (or not)</p><p class="welcome-hint">pick a tab above to explore</p></div></div>`;
     for (const cat of TAB_CATEGORIES) {
-      const isActive = cat.key === defaultTab ? ' active' : '';
-      tabPanelsHtml += `<div class="tab-panel${isActive}" data-tab="${cat.key}">${tabContents[cat.key]}</div>`;
+      tabPanelsHtml += `<div class="tab-panel" data-tab="${cat.key}">${tabContents[cat.key]}</div>`;
     }
 
     const randomAnimal = ['🦄', '🐙', '🦊', '🐲', '🦋', '🐬', '🦜', '🐢'][
@@ -453,68 +458,69 @@ class FunReporter implements Reporter {
 <title>${passRate === 100 ? '🏆' : '📊'} Library Tests — ${passed}/${total} passed</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);color:#fff;padding:1.5rem}
+body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:linear-gradient(180deg,#0b3d0b 0%,#145214 30%,#1a6b1a 60%,#2d8a4e 100%);color:#e8f5e9;padding:1.5rem;cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='24' font-size='24'>☀️</text></svg>") 16 16, auto}
 .container{max-width:1000px;margin:0 auto}
 
-.header{text-align:center;padding:2rem 0 1.5rem}
-.header h1{font-size:2.8rem;background:linear-gradient(90deg,#ff6b9a,#c084fc,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem;animation:glow 2s ease-in-out infinite alternate}
-@keyframes glow{from{filter:brightness(1)}to{filter:brightness(1.3)}}
-.header .mood{font-size:1.5rem;margin:.5rem 0}
-.header .date{opacity:.5;font-size:.85rem}
-
 .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.5rem}
-.card{background:rgba(255,255,255,.08);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:1.2rem;text-align:center;transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(0,0,0,.3)}
+.cards-sm .card{padding:.7rem .5rem;border-radius:12px}
+.cards-sm .card .icon{font-size:1.2rem;margin-bottom:.2rem}
+.cards-sm .card .val{font-size:1.3rem}
+.cards-sm .card .lbl{font-size:.65rem}
+.card{background:rgba(0,0,0,.25);backdrop-filter:blur(10px);border:1px solid rgba(100,200,100,.2);border-radius:16px;padding:1.2rem;text-align:center;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(34,197,94,.2)}
 .card .icon{font-size:1.8rem;margin-bottom:.4rem}
 .card .val{font-size:2rem;font-weight:800}
 .card .lbl{font-size:.75rem;opacity:.6;margin-top:.2rem}
-.card.c-pass .val{color:#34d399}.card.c-fail .val{color:#f87171}.card.c-skip .val{color:#fbbf24}.card.c-total .val{color:#a78bfa}.card.c-time .val{color:#60a5fa;font-size:1.4rem}
+.card.c-pass .val{color:#6ee7b7}.card.c-fail .val{color:#fca5a5}.card.c-skip .val{color:#fde68a}.card.c-total .val{color:#a7f3d0}.card.c-time .val{color:#86efac;font-size:1.4rem}
+.card-link{cursor:pointer;position:relative;overflow:hidden}
+.card-link::after{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .2s;background:radial-gradient(circle at center,rgba(255,255,255,.12) 0%,transparent 70%)}
+.card-link:hover::after{opacity:1}
 
-.bar-wrap{background:rgba(255,255,255,.08);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem;border:1px solid rgba(255,255,255,.1)}
+.bar-wrap{background:rgba(0,0,0,.25);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem;border:1px solid rgba(100,200,100,.2)}
 .bar-bg{background:rgba(255,255,255,.1);border-radius:99px;height:36px;overflow:hidden}
 .bar-fill{height:100%;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;transition:width 1.5s cubic-bezier(.4,0,.2,1);background:${barColor}}
 .bar-label{text-align:center;margin-top:.8rem;font-size:1.1rem;font-weight:600}
 
-.fun-box{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.5rem}
-.fun-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.2rem}
-.fun-card h3{font-size:.85rem;opacity:.5;margin-bottom:.5rem;text-transform:uppercase;letter-spacing:1px}
-.fun-card p{font-size:.95rem;line-height:1.5}
-
 /* Tabs */
-.tabs-nav{display:flex;gap:.5rem;margin-bottom:0;flex-wrap:wrap}
-.tab-btn{padding:.55rem 1.2rem;border:2px solid var(--tab-color);background:transparent;color:var(--tab-color);border-radius:99px;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;outline:none;font-family:inherit}
-.tab-btn:hover{background:color-mix(in srgb,var(--tab-color) 20%,transparent)}
-.tab-btn.active{background:var(--tab-color);color:#fff}
-.tab-count{font-weight:400;opacity:.85;margin-left:2px}
 .tab-panel{display:none}
 .tab-panel.active{display:block}
-.tabs-content{background:rgba(255,255,255,.06);border-radius:0 0 16px 16px;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-top:none;margin-bottom:1.5rem}
-.tabs-nav-wrap{background:rgba(255,255,255,.06);border-radius:16px 16px 0 0;border:1px solid rgba(255,255,255,.08);border-bottom:none;padding:.8rem 1rem .6rem}
+.tabs-content{background:rgba(0,0,0,.2);border-radius:16px;overflow:hidden;border:1px solid rgba(100,200,100,.15);margin-bottom:1.5rem}
 .empty-tab{padding:2rem;text-align:center;opacity:.5;font-size:.95rem}
 
+.welcome-msg{text-align:center;padding:3rem 1rem}
+.welcome-emoji{font-size:4rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite}
+.welcome-msg p{font-size:1.2rem;color:#a7f3d0;font-weight:600}
+.welcome-hint{font-size:.85rem!important;opacity:.5;margin-top:.5rem;font-weight:400!important}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+
 table{width:100%;border-collapse:collapse}
-th{padding:.8rem 1rem;text-align:left;font-size:.8rem;text-transform:uppercase;letter-spacing:1px;opacity:.5;border-bottom:1px solid rgba(255,255,255,.1)}
-td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
-.file-header td{background:rgba(99,102,241,.15);font-weight:700;font-size:.9rem;color:#a5b4fc;padding:.5rem 1rem}
+td{padding:.6rem 1rem;border-bottom:1px solid rgba(100,200,100,.1);vertical-align:top}
+.file-header td{background:rgba(34,197,94,.1);font-weight:700;font-size:.9rem;color:#86efac;padding:.5rem 1rem}
 .file-stats{float:right;font-size:.75rem;opacity:.6;font-weight:400}
-.test-row:hover{background:rgba(255,255,255,.03)}
+.test-row{position:relative}
+.test-row:hover{background:rgba(34,197,94,.08)}
+.test-row::after{content:'';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:1.1rem;opacity:0;transition:opacity .2s}
+.test-row:hover::after{opacity:1}
+.test-row.pass::after{content:'🌿'}
+.test-row.fail::after{content:'🔥'}
+.test-row.skip::after{content:'💤'}
 .test-num{font-weight:700;opacity:.5;font-size:.85rem;white-space:nowrap;width:40px}
 .test-emoji{width:30px;text-align:center}
 .test-name{font-weight:600;margin-bottom:.3rem}
 .test-dur{opacity:.4;font-size:.85rem;white-space:nowrap;width:60px}
 .test-status{font-weight:700;font-size:.8rem;width:70px;text-align:center;border-radius:6px;white-space:nowrap}
-.status-pass{color:#34d399}.status-fail{color:#f87171}.status-skip{color:#fbbf24}
+.status-pass{color:#6ee7b7}.status-fail{color:#fca5a5}.status-skip{color:#fde68a}
 
-.steps{margin-top:.4rem;padding-left:.6rem;border-left:2px solid rgba(255,255,255,.1)}
+.steps{margin-top:.4rem;padding-left:.6rem;border-left:2px solid rgba(16,185,129,.25)}
 .step{font-size:.78rem;padding:2px 0 2px 8px;opacity:.7}
 .step.sub{padding-left:24px}
-.step-pass{opacity:.6}.step-fail{opacity:1;color:#f87171}
+.step-pass{opacity:.6}.step-fail{opacity:1;color:#fca5a5}
 .step-dur{opacity:.4}
 .error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;color:#fca5a5;font-family:monospace;word-break:break-all}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
 .badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
-.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}.c-load .val{color:#60a5fa}.c-reg .val{color:#f59e0b}
+.c-pos .val{color:#6ee7b7}.c-neg .val{color:#fca5a5}.c-sec .val{color:#c4b5fd}.c-load .val{color:#7dd3fc}.c-reg .val{color:#fde68a}
 
 .technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
 .tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
@@ -523,15 +529,13 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .tag-xss{background:rgba(249,115,22,.2);color:#fdba74}.tag-sec{background:rgba(139,92,246,.2);color:#c4b5fd}
 .tag-dos{background:rgba(220,38,38,.2);color:#fca5a5}.tag-other{background:rgba(148,163,184,.2);color:#cbd5e1}
 
-.screenshot{margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:8px}
-.screenshot img{max-width:100%;border-radius:6px;margin-top:.3rem;border:1px solid rgba(255,255,255,.1)}
+.screenshot{margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px}
+.screenshot img{max-width:100%;border-radius:6px;margin-top:.3rem;border:1px solid rgba(100,200,140,.15)}
 .screenshot-label{font-size:.75rem;color:#fca5a5;font-weight:600}
-
-.footer{text-align:center;padding:2rem 0;opacity:.4;font-size:.8rem}
-.footer a{color:#a5b4fc}
+.screenshot img{border:1px solid rgba(100,200,100,.2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.card,.bar-wrap,.fun-card,.tabs-nav-wrap,.tabs-content{animation:fadeUp .5s ease forwards}
+.card,.bar-wrap,.tabs-content{animation:fadeUp .5s ease forwards}
 .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
 @media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}.tabs-nav{flex-direction:column}}
 </style>
@@ -539,13 +543,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 <body>
 <div class="container">
 
-<div class="header">
-  <h1>${randomAnimal} Library Test Report</h1>
-  <div class="mood">${moodEmoji} ${moodText}</div>
-  <div class="date">Generated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}</div>
-</div>
-
-<div class="cards">
+<div class="cards cards-sm">
   <div class="card c-total"><div class="icon">📊</div><div class="val">${total}</div><div class="lbl">Total Tests</div></div>
   <div class="card c-pass"><div class="icon">✅</div><div class="val">${passed}</div><div class="lbl">Passed</div></div>
   <div class="card c-fail"><div class="icon">${failed > 0 ? '💀' : '😎'}</div><div class="val">${failed}</div><div class="lbl">Failed</div></div>
@@ -554,11 +552,11 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 </div>
 
 <div class="cards" style="grid-template-columns:repeat(5,1fr)">
-  <div class="card c-pos"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
-  <div class="card c-neg"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
-  <div class="card c-sec"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
-  <div class="card c-load"><div class="icon">🔵</div><div class="val">${types.loadPass}/${types.load}</div><div class="lbl">Load</div></div>
-  <div class="card c-reg"><div class="icon">🟡</div><div class="val">${types.regPass}/${types.regression}</div><div class="lbl">Regression</div></div>
+  <div class="card card-link c-pos" data-nav-tab="positive"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
+  <div class="card card-link c-neg" data-nav-tab="negative"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
+  <div class="card card-link c-sec" data-nav-tab="security"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
+  <div class="card card-link c-load" data-nav-tab="load"><div class="icon">🔵</div><div class="val">${types.loadPass}/${types.load}</div><div class="lbl">Load</div></div>
+  <div class="card card-link c-reg" data-nav-tab="regression"><div class="icon">🟡</div><div class="val">${types.regPass}/${types.regression}</div><div class="lbl">Regression</div></div>
 </div>
 
 <div class="bar-wrap">
@@ -566,47 +564,24 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
   <div class="bar-label">${passRate === 100 ? '🏆 FLAWLESS VICTORY!' : passRate >= 80 ? '💪 Almost perfect!' : `🔧 ${100 - passRate}% needs fixing`}</div>
 </div>
 
-<div class="fun-box">
-  <div class="fun-card">
-    <h3>😂 Joke of the Run</h3>
-    <p>${esc(joke)}</p>
-  </div>
-  <div class="fun-card">
-    <h3>🧠 Did You Know?</h3>
-    <p>${esc(fact)}</p>
-  </div>
-</div>
-<div class="fun-box">
-  <div class="fun-card" style="grid-column:1/-1">
-    <h3>💡 Motivation</h3>
-    <p>${esc(motivation)}</p>
-  </div>
-</div>
-
-<div class="tabs-nav-wrap">
-  <div class="tabs-nav">${tabButtonsHtml}</div>
-</div>
 <div class="tabs-content">
   ${tabPanelsHtml}
 </div>
 
-<div class="footer">
-  Built with 🧪 <a href="https://playwright.dev">Playwright</a> | 📚 Library Autotest Suite | ${randomAnimal} Have a great day!
-</div>
 
 </div>
 <script>
 (function(){
-  var btns = document.querySelectorAll('.tab-btn');
   var panels = document.querySelectorAll('.tab-panel');
-  btns.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      btns.forEach(function(b){ b.classList.remove('active'); });
-      panels.forEach(function(p){ p.classList.remove('active'); });
-      btn.classList.add('active');
-      var tab = btn.getAttribute('data-tab');
-      document.querySelector('.tab-panel[data-tab="' + tab + '"]').classList.add('active');
-    });
+  function switchTab(tab){
+    panels.forEach(function(p){ p.classList.remove('active'); });
+    var panel = document.querySelector('.tab-panel[data-tab="' + tab + '"]');
+    if(panel) panel.classList.add('active');
+    var content = document.querySelector('.tabs-content');
+    if(content) content.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  document.querySelectorAll('.card-link[data-nav-tab]').forEach(function(card){
+    card.addEventListener('click', function(){ switchTab(card.getAttribute('data-nav-tab')); });
   });
 })();
 </script>

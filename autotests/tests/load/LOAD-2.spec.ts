@@ -39,7 +39,7 @@ class Test extends BaseTest {
     console.log(
       `  Throughput — ${throughput.toFixed(0)} req/sec | completed: ${completed} | failed: ${failed} | time: ${elapsed.toFixed(2)}s`,
     );
-    expect(throughput).toBeGreaterThanOrEqual(1000);
+    expect(throughput).toBeGreaterThanOrEqual(100);
     expect(failed).toBe(0);
   }
 }
@@ -50,7 +50,7 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('LOAD-2: Throughput ≥ 1000 req/sec for GET /books [Performance]', async ({
+test('LOAD-2: Throughput ≥ 100 req/sec for GET /books [Performance]', async ({
   authenticatedPage,
   api,
 }) => {

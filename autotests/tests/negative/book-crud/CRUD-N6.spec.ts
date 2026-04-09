@@ -1,10 +1,16 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { ApiHelper } from '../../../helpers/api';
 
 // Attempts to create book without authentication, verifies 401
-class CrudN6 extends BaseTest {
-  async preconditions() {}
+
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup needed
+  }
+}
+
+class Test extends BaseTest {
   async execute() {
     const unauth = new ApiHelper();
     expect(
@@ -12,15 +18,23 @@ class CrudN6 extends BaseTest {
     ).toBe(401);
     // DB integrity verification — no auth means no DB write possible
   }
-  async postconditions() {}
 }
 
-test('CRUD-N6: Create book without auth returns 401 [Cause-Effect]', async ({ page }) => {
-  const t = new CrudN6(page);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    // No cleanup needed — invalid data was never created
+  }
+}
+
+test('CRUD-N6: Create book without auth returns 401 [Cause-Effect]', async ({ page, api }) => {
+  const pre = new Preconditions(api);
+  const action = new Test(page);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

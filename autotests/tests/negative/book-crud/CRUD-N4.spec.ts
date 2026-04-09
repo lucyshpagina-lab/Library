@@ -1,12 +1,17 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 
 // Submits empty comment (0 chars) via API, verifies rejection
-class CrudN4 extends BaseTest {
-  private bookId!: number;
-  async preconditions() {
+
+class Preconditions extends BasePreconditions {
+  bookId!: number;
+  async setup() {
     this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id;
   }
+}
+
+class Test extends BaseTest {
+  bookId!: number;
   async execute() {
     expect((await this.api.addComment(this.bookId, '')).status).toBeGreaterThanOrEqual(400);
     // DB integrity verification — empty comment was not stored
@@ -14,15 +19,24 @@ class CrudN4 extends BaseTest {
     const emptyComments = dbBook.extract('book.comments').filter((c: any) => c.text === '');
     expect(emptyComments.length).toBe(0);
   }
-  async postconditions() {}
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    // No cleanup needed — invalid data was never created
+  }
 }
 
 test('CRUD-N4: Empty comment rejected 0 chars [BVA]', async ({ authenticatedPage, api }) => {
-  const t = new CrudN4(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new Test(authenticatedPage, api);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
+  action.bookId = pre.bookId;
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });

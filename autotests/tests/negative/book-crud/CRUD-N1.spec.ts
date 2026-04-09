@@ -1,9 +1,15 @@
 import { test, expect } from '../../../fixtures/test.fixture';
-import { BaseTest } from '../../../helpers/BaseTest';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 
 // Creates book with empty title via API, verifies rejection
-class CrudN1 extends BaseTest {
-  async preconditions() {}
+
+class Preconditions extends BasePreconditions {
+  async setup() {
+    // No setup needed
+  }
+}
+
+class Test extends BaseTest {
   async execute() {
     const res = await this.api.createBook({
       title: '',
@@ -17,15 +23,23 @@ class CrudN1 extends BaseTest {
     const emptyTitleBooks = books.extract('books').filter((b: any) => b.title === '');
     expect(emptyTitleBooks.length).toBe(0);
   }
-  async postconditions() {}
+}
+
+class Postconditions extends BasePostconditions {
+  async cleanup() {
+    // No cleanup needed — invalid data was never created
+  }
 }
 
 test('CRUD-N1: Create book with empty title rejected [EP]', async ({ authenticatedPage, api }) => {
-  const t = new CrudN1(authenticatedPage, api);
-  await test.step('PRECONDITIONS', () => t.preconditions());
+  const pre = new Preconditions(api);
+  const action = new Test(authenticatedPage, api);
+  const post = new Postconditions(api);
+
+  await test.step('PRECONDITIONS', () => pre.setup());
   try {
-    await test.step('TEST', () => t.execute());
+    await test.step('TEST', () => action.execute());
   } finally {
-    await test.step('POSTCONDITIONS', () => t.postconditions());
+    await test.step('POSTCONDITIONS', () => post.cleanup());
   }
 });
