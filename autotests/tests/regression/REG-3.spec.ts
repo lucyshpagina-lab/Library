@@ -1,6 +1,8 @@
 import { test, expect } from '../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 import { CatalogPage } from '../../pages/CatalogPage';
+import { ApiHelper } from '../../helpers/api';
+import { Page } from '@playwright/test';
 
 // Regression: Open catalog, verify books load, filter by genre
 
@@ -9,6 +11,10 @@ class Preconditions extends BasePreconditions {
 }
 
 class Test extends BaseTest {
+  constructor(page: Page, api: ApiHelper) {
+    super(page, api);
+  }
+
   async execute() {
     const catalog = new CatalogPage(this.page);
     await catalog.open();
@@ -16,6 +22,10 @@ class Test extends BaseTest {
     await catalog.filterByGenre('Fantasy');
     await this.page.waitForTimeout(1000);
     await expect(catalog.bookCount).toContainText('10 books found');
+
+    // DB integrity verification — API returns same count
+    const apiBooks = await this.api.getBooks({ genre: 'Fantasy' });
+    expect(apiBooks.extract('total')).toBe(10);
   }
 }
 
@@ -27,7 +37,7 @@ class Postconditions extends BasePostconditions {
 
 test('REG-3: Display books and filter by genre [Regression]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

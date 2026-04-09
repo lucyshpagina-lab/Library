@@ -19,6 +19,11 @@ class Test extends BaseTest {
     await new FavoritesPage(this.page).open();
     const heart = this.page.locator('header a[href="/favorites"] svg');
     await expect(heart).toHaveClass(/fill-red-500/);
+
+    // DB integrity verification — favorite count matches
+    const favs = await this.api.getFavorites();
+    expect(favs.status).toBe(200);
+    expect(favs.extract('favorites').length).toBeGreaterThanOrEqual(1);
   }
 }
 
@@ -43,7 +48,7 @@ test('FAV-P3: Red heart counter in header [State Transition]', async ({
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(authenticatedPage);
+  const action = new Test(authenticatedPage, api);
   const post = new Postconditions(api, pre.bookId);
 
   try {

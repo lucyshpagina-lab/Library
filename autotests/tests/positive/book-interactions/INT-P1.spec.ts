@@ -2,6 +2,7 @@ import { test, expect } from '../../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { Page } from '@playwright/test';
+import { ApiHelper } from '../../../helpers/api';
 
 // Adds comment via API, opens book page, verifies comment text visible
 
@@ -21,13 +22,20 @@ class Test extends BaseTest {
     page: Page,
     private bookId: number,
     private comment: string,
+    api: ApiHelper,
   ) {
-    super(page);
+    super(page, api);
   }
 
   async execute() {
     await new BookPage(this.page).open(this.bookId);
     await expect(this.page.locator('#comments-section')).toContainText(this.comment);
+
+    // DB integrity verification — comment FK to book
+    const dbBook = await this.api.getBook(this.bookId);
+    expect(dbBook.status).toBe(200);
+    const comments = dbBook.extract('book.comments');
+    expect(comments.some((c: any) => c.text === this.comment)).toBe(true);
   }
 }
 
@@ -44,7 +52,7 @@ test('INT-P1: Add comment via API and verify on page [Use Case]', async ({
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(authenticatedPage, pre.bookId, pre.comment);
+  const action = new Test(authenticatedPage, pre.bookId, pre.comment, api);
   const post = new Postconditions(api);
 
   try {

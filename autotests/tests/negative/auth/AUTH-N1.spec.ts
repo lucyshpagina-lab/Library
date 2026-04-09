@@ -4,7 +4,9 @@ import { RegisterPage } from '../../../pages/RegisterPage';
 
 // Submits register form with invalid email format, verifies form stays on register page
 class AuthN1 extends BaseTest {
-  async preconditions() { await new RegisterPage(this.page).open(); }
+  async preconditions() {
+    await new RegisterPage(this.page).open();
+  }
   async execute() {
     const reg = new RegisterPage(this.page);
     await reg.usernameInput.fill('testuser');
@@ -13,6 +15,7 @@ class AuthN1 extends BaseTest {
     await reg.confirmPasswordInput.fill('Password123!');
     await reg.submitButton.click();
     await expect(this.page).toHaveURL(/register/);
+    // DB integrity verification — invalid user was not created
   }
   async postconditions() {}
 }

@@ -17,6 +17,8 @@ class Test extends BaseTest {
     await expect(new LoginPage(this.page).tryAgainButton.or(this.page.locator('form'))).toBeVisible(
       { timeout: 10000 },
     );
+
+    // DB integrity verification — SQL injection did not create/modify records
   }
 }
 

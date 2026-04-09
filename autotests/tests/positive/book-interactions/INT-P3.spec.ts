@@ -2,6 +2,7 @@ import { test, expect } from '../../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { Page } from '@playwright/test';
+import { ApiHelper } from '../../../helpers/api';
 
 // Clicks Read Book button and verifies reader opens
 
@@ -18,8 +19,9 @@ class Test extends BaseTest {
   constructor(
     page: Page,
     private bookId: number,
+    api: ApiHelper,
   ) {
-    super(page);
+    super(page, api);
   }
 
   async execute() {
@@ -27,6 +29,10 @@ class Test extends BaseTest {
     await new BookPage(this.page).readButton.click();
     await this.page.waitForURL('/read/' + this.bookId);
     await expect(this.page.locator('article')).toBeVisible();
+
+    // DB integrity verification — book exists in DB
+    const dbBook = await this.api.getBook(this.bookId);
+    expect(dbBook.status).toBe(200);
   }
 }
 
@@ -40,7 +46,7 @@ test('INT-P3: Navigate to reader from book detail [Use Case]', async ({ page, ap
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(page, pre.bookId);
+  const action = new Test(page, pre.bookId, api);
   const post = new Postconditions(api);
 
   try {

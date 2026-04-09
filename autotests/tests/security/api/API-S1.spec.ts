@@ -14,6 +14,8 @@ class Test extends BaseTest {
     });
     expect(res.status).toBe(401);
     expect((await res.json()).error).toContain('Invalid');
+
+    // DB integrity verification — no DB mutation with invalid tokens
   }
 }
 

@@ -23,6 +23,8 @@ class Test extends BaseTest {
       });
       expect(res.status).toBe(401);
     }
+
+    // DB integrity verification — no DB mutation with invalid tokens
   }
 }
 

@@ -17,6 +17,11 @@ class Test extends BaseTest {
     await catalog.selectSort('author');
     await this.page.waitForTimeout(1000);
     await expect(catalog.bookCards.first()).toBeVisible();
+
+    // DB integrity verification — API returns books sorted by author
+    const apiBooks = await this.api.getBooks({ sort: 'author' });
+    expect(apiBooks.status).toBe(200);
+    expect(apiBooks.extract('books').length).toBeGreaterThan(0);
   }
 }
 
@@ -28,7 +33,7 @@ class Postconditions extends BasePostconditions {
 
 test('CAT-P3: Sort books by author A-Z [EP: valid sort]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

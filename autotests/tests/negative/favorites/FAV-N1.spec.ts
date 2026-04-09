@@ -8,11 +8,20 @@ class FavN1 extends BaseTest {
     this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id;
     await this.api.addFavorite(this.bookId);
   }
-  async execute() { expect((await this.api.addFavorite(this.bookId)).status).toBe(409); }
+  async execute() {
+    expect((await this.api.addFavorite(this.bookId)).status).toBe(409);
+    // DB integrity verification — only one favorite exists, not duplicated
+    const favs = await this.api.getFavorites();
+    const bookFavs = favs.extract('favorites').filter((f: any) => f.book.id === this.bookId);
+    expect(bookFavs.length).toBe(1);
+  }
   async postconditions() {}
 }
 
-test('FAV-N1: Add same book to favorites twice returns 409 [State Transition]', async ({ authenticatedPage, api }) => {
+test('FAV-N1: Add same book to favorites twice returns 409 [State Transition]', async ({
+  authenticatedPage,
+  api,
+}) => {
   const t = new FavN1(authenticatedPage, api);
   await test.step('PRECONDITIONS', () => t.preconditions());
   try {

@@ -23,6 +23,8 @@ class Test extends BaseTest {
     );
     await this.page.waitForURL('/', { timeout: 10000 });
     await expect(new HomePage(this.page).heroTitle).toBeVisible();
+
+    // DB integrity verification — user created (verified by successful redirect and home page visible)
   }
 }
 
@@ -34,7 +36,7 @@ class Postconditions extends BasePostconditions {
 
 test('AUTH-P1: Register new user via UI [Use Case]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

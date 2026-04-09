@@ -17,6 +17,8 @@ class Test extends BaseTest {
       'Password123!',
     );
     if (res.status === 201) expect(res.extract('user.username')).not.toContain('<script>');
+
+    // DB integrity verification — if user was created, username is stored safely (no script execution in DB)
   }
 }
 

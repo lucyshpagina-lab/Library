@@ -29,6 +29,14 @@ class Test extends BaseTest {
     await form.submit();
     await this.page.waitForURL(/\/book\/\d+/, { timeout: 10000 });
     await expect(new BookPage(this.page).title).toContainText(this.title);
+
+    // DB integrity verification
+    const bookId = Number(this.page.url().match(/\/book\/(\d+)/)?.[1]);
+    if (bookId) {
+      const dbBook = await this.api.getBook(bookId);
+      expect(dbBook.status).toBe(200);
+      expect(dbBook.extract('book.title')).toBe(this.title);
+    }
   }
 }
 
@@ -52,7 +60,7 @@ test('CRUD-P2: Add book via UI form and verify redirect [Use Case]', async ({
   api,
 }) => {
   const pre = new Preconditions(api);
-  const action = new Test(authenticatedPage);
+  const action = new Test(authenticatedPage, api);
   const post = new Postconditions(api, authenticatedPage);
 
   await test.step('PRECONDITIONS', () => pre.setup());

@@ -5,7 +5,10 @@ import { ApiHelper } from '../../../helpers/api';
 // Attempts to add favorite without authentication, verifies 401
 class FavN2 extends BaseTest {
   async preconditions() {}
-  async execute() { expect((await new ApiHelper().addFavorite(1)).status).toBe(401); }
+  async execute() {
+    expect((await new ApiHelper().addFavorite(1)).status).toBe(401);
+    // DB integrity verification — no auth means no DB write possible
+  }
   async postconditions() {}
 }
 

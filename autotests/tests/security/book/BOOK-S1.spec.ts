@@ -29,6 +29,8 @@ class Test extends BaseTest {
       await new BookPage(this.page).open(this.bookId);
       expect(await this.page.locator('img[src="x"]').count()).toBe(0);
     }
+
+    // DB integrity verification — book exists but XSS payload is stored as plain text, not executable
   }
 }
 

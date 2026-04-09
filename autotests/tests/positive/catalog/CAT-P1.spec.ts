@@ -18,6 +18,10 @@ class Test extends BaseTest {
     await catalog.filterByGenre('Fantasy');
     await this.page.waitForTimeout(1000);
     await expect(catalog.bookCount).toContainText('10 books found');
+
+    // DB integrity verification — API returns same count as UI
+    const apiBooks = await this.api.getBooks({ genre: 'Fantasy' });
+    expect(apiBooks.extract('total')).toBe(10);
   }
 }
 
@@ -29,7 +33,7 @@ class Postconditions extends BasePostconditions {
 
 test('CAT-P1: Display books and filter by genre [Use Case]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

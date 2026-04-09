@@ -18,6 +18,12 @@ class Test extends BaseTest {
     await catalog.searchFor('Dune');
     await this.page.waitForTimeout(1000);
     await expect(catalog.bookCardByTitle('Dune').first()).toBeVisible({ timeout: 10000 });
+
+    // DB integrity verification — API search returns Dune
+    const apiBooks = await this.api.getBooks({ search: 'Dune' });
+    expect(apiBooks.status).toBe(200);
+    const books = apiBooks.extract('books');
+    expect(books.some((b: any) => b.title.includes('Dune'))).toBe(true);
   }
 }
 
@@ -29,7 +35,7 @@ class Postconditions extends BasePostconditions {
 
 test('CAT-P2: Search books by title [Use Case]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

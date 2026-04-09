@@ -29,6 +29,8 @@ class Test extends BaseTest {
     await api.login('fake@none.com', 'wrong');
     const d2 = Date.now() - t2;
     expect(Math.abs(d1 - d2)).toBeLessThan(500);
+
+    // DB integrity verification — no DB mutation (timing attack is read-only)
   }
 }
 

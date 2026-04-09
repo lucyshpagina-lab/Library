@@ -2,6 +2,7 @@ import { test, expect } from '../../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { FavoritesPage } from '../../../pages/FavoritesPage';
 import { ApiHelper } from '../../../helpers/api';
+import { Page } from '@playwright/test';
 // Adds book to favorites via API, verifies book appears on favorites page
 
 class Preconditions extends BasePreconditions {
@@ -21,8 +22,9 @@ class Test extends BaseTest {
   constructor(
     page: Page,
     private bookTitle: string,
+    api: ApiHelper,
   ) {
-    super(page);
+    super(page, api);
   }
 
   async execute() {
@@ -30,6 +32,12 @@ class Test extends BaseTest {
     await fav.open();
     await expect(fav.bookCount).toBeVisible();
     await expect(fav.bookByTitle(this.bookTitle)).toBeVisible();
+
+    // DB integrity verification — favorite FK to book
+    const favs = await this.api.getFavorites();
+    expect(favs.status).toBe(200);
+    const favBooks = favs.extract('favorites');
+    expect(favBooks.some((f: any) => f.book.title === this.bookTitle)).toBe(true);
   }
 }
 
@@ -54,7 +62,7 @@ test('FAV-P2: Add favorite via API and verify on page [Use Case]', async ({
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(authenticatedPage, pre.bookTitle);
+  const action = new Test(authenticatedPage, pre.bookTitle, api);
   const post = new Postconditions(api, pre.bookId);
 
   try {

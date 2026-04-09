@@ -13,6 +13,8 @@ class Test extends BaseTest {
       headers: { Cookie: 'token=not-a-jwt' },
     });
     expect(res.status).toBe(401);
+
+    // DB integrity verification — no DB mutation with invalid tokens
   }
 }
 

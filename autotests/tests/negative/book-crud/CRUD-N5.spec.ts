@@ -4,8 +4,18 @@ import { BaseTest } from '../../../helpers/BaseTest';
 // Submits 1001-char comment (max+1 boundary) via API, verifies rejection
 class CrudN5 extends BaseTest {
   private bookId!: number;
-  async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
-  async execute() { expect((await this.api.addComment(this.bookId, 'x'.repeat(1001))).status).toBeGreaterThanOrEqual(400); }
+  async preconditions() {
+    this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id;
+  }
+  async execute() {
+    expect(
+      (await this.api.addComment(this.bookId, 'x'.repeat(1001))).status,
+    ).toBeGreaterThanOrEqual(400);
+    // DB integrity verification — oversized comment was not stored
+    const dbBook = await this.api.getBook(this.bookId);
+    const longComments = dbBook.extract('book.comments').filter((c: any) => c.text.length > 1000);
+    expect(longComments.length).toBe(0);
+  }
   async postconditions() {}
 }
 

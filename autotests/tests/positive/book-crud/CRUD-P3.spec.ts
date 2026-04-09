@@ -1,6 +1,7 @@
 import { test, expect } from '../../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { Page } from '@playwright/test';
+import { ApiHelper } from '../../../helpers/api';
 
 // Creates book via API, deletes it, verifies book page shows not found
 
@@ -24,8 +25,9 @@ class Test extends BaseTest {
   constructor(
     page: Page,
     private bookId: number,
+    api: ApiHelper,
   ) {
-    super(page);
+    super(page, api);
   }
 
   async execute() {
@@ -33,6 +35,10 @@ class Test extends BaseTest {
     await expect(this.page.locator('text=/not found|Failed to load/i')).toBeVisible({
       timeout: 10000,
     });
+
+    // DB integrity verification — book and its related data must not exist
+    const dbBook = await this.api.getBook(this.bookId);
+    expect(dbBook.status).toBe(404);
   }
 }
 
@@ -49,7 +55,7 @@ test('CRUD-P3: Delete book via API and verify gone on UI [State Transition]', as
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(page, pre.bookId);
+  const action = new Test(page, pre.bookId, api);
   const post = new Postconditions(api);
 
   try {

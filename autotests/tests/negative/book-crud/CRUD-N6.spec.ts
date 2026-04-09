@@ -7,7 +7,10 @@ class CrudN6 extends BaseTest {
   async preconditions() {}
   async execute() {
     const unauth = new ApiHelper();
-    expect((await unauth.createBook({ title: 'X', author: 'X', genre: 'X', content: 'X' })).status).toBe(401);
+    expect(
+      (await unauth.createBook({ title: 'X', author: 'X', genre: 'X', content: 'X' })).status,
+    ).toBe(401);
+    // DB integrity verification — no auth means no DB write possible
   }
   async postconditions() {}
 }

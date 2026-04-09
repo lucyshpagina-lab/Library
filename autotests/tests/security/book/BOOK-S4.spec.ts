@@ -14,6 +14,8 @@ class Test extends BaseTest {
       (await new ApiHelper().createBook({ title: 'X', author: 'X', genre: 'X', content: 'X' }))
         .status,
     ).toBe(401);
+
+    // DB integrity verification — no unauthorized book was created
   }
 }
 

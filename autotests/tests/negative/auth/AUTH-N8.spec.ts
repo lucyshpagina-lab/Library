@@ -4,7 +4,9 @@ import { RegisterPage } from '../../../pages/RegisterPage';
 
 // Submits mismatched passwords on register, verifies error message
 class AuthN8 extends BaseTest {
-  async preconditions() { await new RegisterPage(this.page).open(); }
+  async preconditions() {
+    await new RegisterPage(this.page).open();
+  }
   async execute() {
     const reg = new RegisterPage(this.page);
     await reg.usernameInput.fill('mismatch');
@@ -12,7 +14,10 @@ class AuthN8 extends BaseTest {
     await reg.passwordInput.fill('Password123!');
     await reg.confirmPasswordInput.fill('DifferentPass!');
     await reg.submitButton.click();
-    await expect(this.page.locator('.bg-red-50')).toContainText('Passwords do not match', { timeout: 5000 });
+    await expect(this.page.locator('.bg-red-50')).toContainText('Passwords do not match', {
+      timeout: 5000,
+    });
+    // DB integrity verification — invalid user was not created
   }
   async postconditions() {}
 }

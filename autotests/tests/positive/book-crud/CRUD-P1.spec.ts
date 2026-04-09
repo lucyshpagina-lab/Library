@@ -2,6 +2,7 @@ import { test, expect } from '../../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
 import { BookPage } from '../../../pages/BookPage';
 import { ApiHelper } from '../../../helpers/api';
+import { Page } from '@playwright/test';
 // Creates book via API, opens book page, verifies title and author visible, deletes
 
 class Preconditions extends BasePreconditions {
@@ -23,14 +24,22 @@ class Test extends BaseTest {
   constructor(
     page: Page,
     private book: any,
+    api: ApiHelper,
   ) {
-    super(page);
+    super(page, api);
   }
 
   async execute() {
     await new BookPage(this.page).open(this.book.id);
     await expect(new BookPage(this.page).title).toContainText(this.book.title, { timeout: 10000 });
     await expect(this.page.getByText('Test Author', { exact: true })).toBeVisible();
+
+    // DB integrity verification
+    const dbBook = await this.api.getBook(this.book.id);
+    expect(dbBook.status).toBe(200);
+    expect(dbBook.extract('book.title')).toBe(this.book.title);
+    expect(dbBook.extract('book.author')).toBe('Test Author');
+    expect(dbBook.extract('book.genre')).toBe('Science Fiction');
   }
 }
 
@@ -55,7 +64,7 @@ test('CRUD-P1: Create book via API and verify on UI [Use Case]', async ({
   const pre = new Preconditions(api);
   await test.step('PRECONDITIONS', () => pre.setup());
 
-  const action = new Test(authenticatedPage, pre.book);
+  const action = new Test(authenticatedPage, pre.book, api);
   const post = new Postconditions(api, pre.book.id);
 
   try {

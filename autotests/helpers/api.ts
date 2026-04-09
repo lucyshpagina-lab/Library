@@ -21,7 +21,9 @@ class RestResponse {
 
   statusCode(expected: number): RestResponse {
     if (this.status !== expected) {
-      throw new Error(`Expected status ${expected}, got ${this.status}. Body: ${JSON.stringify(this.body)}`);
+      throw new Error(
+        `Expected status ${expected}, got ${this.status}. Body: ${JSON.stringify(this.body)}`,
+      );
     }
     return this;
   }
@@ -30,7 +32,8 @@ class RestResponse {
     const keys = field.split('.');
     let val: any = this.body;
     for (const k of keys) {
-      if (val === undefined || val === null) throw new Error(`Field "${field}" not found in response`);
+      if (val === undefined || val === null)
+        throw new Error(`Field "${field}" not found in response`);
       val = val[k];
     }
     if (val === undefined) throw new Error(`Field "${field}" not found in response`);
@@ -61,7 +64,12 @@ export class ApiHelper {
   private createdFavoriteBookIds: number[] = [];
   private createdCommentIds: number[] = [];
 
-  private async request(method: string, path: string, body?: any, auth = false): Promise<RestResponse> {
+  private async request(
+    method: string,
+    path: string,
+    body?: any,
+    auth = false,
+  ): Promise<RestResponse> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (auth && this.token) headers['Cookie'] = `token=${this.token}`;
 
@@ -76,7 +84,11 @@ export class ApiHelper {
     if (tokenMatch) this.token = tokenMatch[1];
 
     let data: any;
-    try { data = await res.json(); } catch { data = null; }
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
     return new RestResponse(res.status, data, res.headers);
   }
 
@@ -93,10 +105,19 @@ export class ApiHelper {
     return this.request('POST', '/auth/login', { email, password });
   }
 
+  async getMe(): Promise<RestResponse> {
+    return this.request('GET', '/auth/me', undefined, true);
+  }
+
   // ── Books ──
   async createBook(data: {
-    title: string; author: string; genre: string; content: string;
-    description?: string; pageCount?: number; publishedYear?: number;
+    title: string;
+    author: string;
+    genre: string;
+    content: string;
+    description?: string;
+    pageCount?: number;
+    publishedYear?: number;
   }): Promise<RestResponse> {
     const res = await this.request('POST', '/books', data, true);
     if (res.status === 201 && res.body?.book?.id) {
@@ -107,6 +128,10 @@ export class ApiHelper {
 
   async deleteBook(id: number): Promise<RestResponse> {
     return this.request('DELETE', `/books/${id}`, undefined, true);
+  }
+
+  async getBook(id: number): Promise<RestResponse> {
+    return this.request('GET', `/books/${id}`, undefined, true);
   }
 
   async getBooks(params?: Record<string, string>): Promise<RestResponse> {
@@ -123,6 +148,10 @@ export class ApiHelper {
 
   async removeFavorite(bookId: number): Promise<RestResponse> {
     return this.request('DELETE', `/favorites/${bookId}`, undefined, true);
+  }
+
+  async getFavorites(): Promise<RestResponse> {
+    return this.request('GET', '/favorites', undefined, true);
   }
 
   // ── Comments & Ratings ──
@@ -152,7 +181,13 @@ export class ApiHelper {
     this.createdUserIds = [];
   }
 
-  getToken() { return this.token; }
-  getCreatedBookIds() { return [...this.createdBookIds]; }
-  getCreatedUserIds() { return [...this.createdUserIds]; }
+  getToken() {
+    return this.token;
+  }
+  getCreatedBookIds() {
+    return [...this.createdBookIds];
+  }
+  getCreatedUserIds() {
+    return [...this.createdUserIds];
+  }
 }

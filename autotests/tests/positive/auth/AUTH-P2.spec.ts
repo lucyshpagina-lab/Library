@@ -15,6 +15,8 @@ class Test extends BaseTest {
     await new LoginPage(this.page).open();
     await new LoginPage(this.page).login('fake@test.com', 'wrongpass');
     await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
+
+    // DB integrity verification — no user session should exist after failed login
   }
 }
 

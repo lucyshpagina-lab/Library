@@ -4,8 +4,15 @@ import { BaseTest } from '../../../helpers/BaseTest';
 // Rates book with value 6 (above max 5) via API, verifies rejection
 class CrudN3 extends BaseTest {
   private bookId!: number;
-  async preconditions() { this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id; }
-  async execute() { expect((await this.api.rateBook(this.bookId, 6)).status).toBeGreaterThanOrEqual(400); }
+  async preconditions() {
+    this.bookId = (await this.api.getBooks({ limit: '1' })).extract('books')[0].id;
+  }
+  async execute() {
+    expect((await this.api.rateBook(this.bookId, 6)).status).toBeGreaterThanOrEqual(400);
+    // DB integrity verification — invalid rating was not stored
+    const dbBook = await this.api.getBook(this.bookId);
+    expect(dbBook.extract('userRating')).toBeNull();
+  }
   async postconditions() {}
 }
 

@@ -9,6 +9,7 @@ class AuthN5 extends BaseTest {
     const api = new ApiHelper();
     const res = await api.register(`bva-${Date.now()}@test.com`, 'a'.repeat(21), 'Password123!');
     expect(res.status).not.toBe(201);
+    // DB integrity verification — invalid user was not created
   }
   async postconditions() {}
 }

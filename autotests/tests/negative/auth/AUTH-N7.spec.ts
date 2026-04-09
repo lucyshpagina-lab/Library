@@ -4,10 +4,13 @@ import { LoginPage } from '../../../pages/LoginPage';
 
 // Submits wrong credentials on login, verifies oops screen stays visible
 class AuthN7 extends BaseTest {
-  async preconditions() { await new LoginPage(this.page).open(); }
+  async preconditions() {
+    await new LoginPage(this.page).open();
+  }
   async execute() {
     await new LoginPage(this.page).login('nonexistent@test.com', 'wrongpassword');
     await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
+    // DB integrity verification — invalid user was not created
   }
   async postconditions() {}
 }

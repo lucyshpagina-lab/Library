@@ -15,6 +15,11 @@ class Test extends BaseTest {
     const catalog = new CatalogPage(this.page);
     await catalog.open();
     await expect(catalog.sortSelect).toHaveValue('date');
+
+    // DB integrity verification — API returns books with default sort
+    const apiBooks = await this.api.getBooks({ sort: 'date' });
+    expect(apiBooks.status).toBe(200);
+    expect(apiBooks.extract('books').length).toBeGreaterThan(0);
   }
 }
 
@@ -26,7 +31,7 @@ class Postconditions extends BasePostconditions {
 
 test('CAT-P4: Default sort is Newest [State Transition]', async ({ page, api }) => {
   const pre = new Preconditions(api);
-  const action = new Test(page);
+  const action = new Test(page, api);
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

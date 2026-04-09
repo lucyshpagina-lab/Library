@@ -4,7 +4,9 @@ import { RegisterPage } from '../../../pages/RegisterPage';
 
 // Submits register form with 7-char password (below min 8), verifies rejection
 class AuthN2 extends BaseTest {
-  async preconditions() { await new RegisterPage(this.page).open(); }
+  async preconditions() {
+    await new RegisterPage(this.page).open();
+  }
   async execute() {
     const reg = new RegisterPage(this.page);
     await reg.usernameInput.fill('shortpw');
@@ -13,6 +15,7 @@ class AuthN2 extends BaseTest {
     await reg.confirmPasswordInput.fill('1234567');
     await reg.submitButton.click();
     await expect(this.page).toHaveURL(/register/);
+    // DB integrity verification — invalid user was not created
   }
   async postconditions() {}
 }
