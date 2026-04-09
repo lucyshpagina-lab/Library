@@ -84,6 +84,7 @@ function classifyTest(filePath: string): string {
   if (filePath.includes('/negative/')) return 'negative';
   if (filePath.includes('/security/')) return 'security';
   if (filePath.includes('/load/')) return 'load';
+  if (filePath.includes('/regression/')) return 'regression';
   return 'regression';
 }
 
@@ -115,7 +116,9 @@ class FunReporter implements Reporter {
           ? '\x1b[45m S \x1b[0m'
           : filePath.includes('/load/')
             ? '\x1b[44m L \x1b[0m'
-            : '   ';
+            : filePath.includes('/regression/')
+              ? '\x1b[43m R \x1b[0m'
+              : '   ';
     console.log(`  ${emoji} #${num} ${type} │ ${test.title} (${duration}s)`);
   }
 
@@ -142,6 +145,12 @@ class FunReporter implements Reporter {
     const loadPass = this.results.filter(
       (r) => r.test.location.file.includes('/load/') && r.result.status === 'passed',
     ).length;
+    const regression = this.results.filter((r) =>
+      r.test.location.file.includes('/regression/'),
+    ).length;
+    const regPass = this.results.filter(
+      (r) => r.test.location.file.includes('/regression/') && r.result.status === 'passed',
+    ).length;
 
     console.log('\n' + '═'.repeat(60));
     console.log(`  📊 SCOREBOARD`);
@@ -154,6 +163,7 @@ class FunReporter implements Reporter {
     console.log(`  🔴 Negative:  ${negPass}/${negative}`);
     console.log(`  🟣 Security:  ${secPass}/${security}`);
     console.log(`  🔵 Load:      ${loadPass}/${load}`);
+    console.log(`  🟡 Regression: ${regPass}/${regression}`);
     console.log('═'.repeat(60));
 
     const joke =
@@ -172,10 +182,12 @@ class FunReporter implements Reporter {
       negative,
       security,
       load,
+      regression,
       posPass,
       negPass,
       secPass,
       loadPass,
+      regPass,
     });
   }
 
@@ -193,10 +205,12 @@ class FunReporter implements Reporter {
       negative: number;
       security: number;
       load: number;
+      regression: number;
       posPass: number;
       negPass: number;
       secPass: number;
       loadPass: number;
+      regPass: number;
     },
   ) {
     const reportDir = path.join(__dirname, '..', 'report');
@@ -306,7 +320,7 @@ class FunReporter implements Reporter {
               ? '<span class="badge badge-sec">SECURITY</span>'
               : file.includes('load')
                 ? '<span class="badge badge-load">LOAD</span>'
-                : '';
+                : '<span class="badge badge-reg">REGRESSION</span>';
         const filePass = tests.filter((t) => t.result.status === 'passed').length;
         const fileTotal = tests.length;
         rows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} ${fileType} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
@@ -318,7 +332,7 @@ class FunReporter implements Reporter {
           const dur = (r.duration / 1000).toFixed(2);
 
           let stepsHtml = '';
-          if (r.steps && r.steps.length > 0) {
+          if (r.status === 'failed' && r.steps && r.steps.length > 0) {
             stepsHtml = '<div class="steps">';
             for (const step of r.steps) {
               const sIcon = step.error ? '❌' : '✅';
@@ -499,8 +513,8 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
 .error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;color:#fca5a5;font-family:monospace;word-break:break-all}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
-.badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}
-.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}.c-load .val{color:#60a5fa}
+.badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
+.c-pos .val{color:#10b981}.c-neg .val{color:#ef4444}.c-sec .val{color:#8b5cf6}.c-load .val{color:#60a5fa}.c-reg .val{color:#f59e0b}
 
 .technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
 .tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
@@ -539,11 +553,12 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-ali
   <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
 </div>
 
-<div class="cards" style="grid-template-columns:repeat(4,1fr)">
+<div class="cards" style="grid-template-columns:repeat(5,1fr)">
   <div class="card c-pos"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
   <div class="card c-neg"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
   <div class="card c-sec"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
   <div class="card c-load"><div class="icon">🔵</div><div class="val">${types.loadPass}/${types.load}</div><div class="lbl">Load</div></div>
+  <div class="card c-reg"><div class="icon">🟡</div><div class="val">${types.regPass}/${types.regression}</div><div class="lbl">Regression</div></div>
 </div>
 
 <div class="bar-wrap">

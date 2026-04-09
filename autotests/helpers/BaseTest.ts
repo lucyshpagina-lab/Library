@@ -17,13 +17,15 @@ export abstract class BasePreconditions {
 
 /**
  * Base class for TEST: contains UI actions and assertions.
- * Receives page and any data created by preconditions.
+ * Receives page and optionally api for tests that need API access.
  */
 export abstract class BaseTest {
   protected page: Page;
+  protected api: ApiHelper;
 
-  constructor(page: Page) {
+  constructor(page: Page, api?: ApiHelper) {
     this.page = page;
+    this.api = api!;
   }
 
   abstract execute(): Promise<void>;

@@ -1,13 +1,11 @@
-import { test, expect } from '../../../fixtures/test.fixture';
-import { BasePreconditions, BaseTest, BasePostconditions } from '../../../helpers/BaseTest';
-import { CatalogPage } from '../../../pages/CatalogPage';
+import { test, expect } from '../../fixtures/test.fixture';
+import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
+import { CatalogPage } from '../../pages/CatalogPage';
 
-// Opens catalog, verifies books load, filters by Fantasy genre and checks results
+// Regression: Open catalog, verify books load, filter by genre
 
 class Preconditions extends BasePreconditions {
-  async setup() {
-    // Catalog tests rely on seeded data — no API setup needed
-  }
+  async setup() {}
 }
 
 class Test extends BaseTest {
@@ -27,7 +25,7 @@ class Postconditions extends BasePostconditions {
   }
 }
 
-test('CAT-P1: Display books and filter by genre [Use Case]', async ({ page, api }) => {
+test('REG-3: Display books and filter by genre [Regression]', async ({ page, api }) => {
   const pre = new Preconditions(api);
   const action = new Test(page);
   const post = new Postconditions(api);
