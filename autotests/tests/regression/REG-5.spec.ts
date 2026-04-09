@@ -32,10 +32,8 @@ class Test extends BaseTest {
     await expect(this.page.locator('#comments-section')).toContainText(this.comment);
 
     // DB integrity verification — comment FK to book
-    const dbBook = await this.api.getBook(this.bookId);
-    expect(dbBook.status).toBe(200);
-    const comments = dbBook.extract('book.comments');
-    expect(comments.some((c: any) => c.text === this.comment)).toBe(true);
+    const dbComments = await this.db.findCommentsByBookId(this.bookId);
+    expect(dbComments.some((c: any) => c.text === this.comment)).toBe(true);
   }
 }
 

@@ -16,6 +16,8 @@ class Test extends BaseTest {
     const res = await api.register('short@test.com', 'ab', 'Password123!');
     expect(res.status).not.toBe(201);
     // DB integrity verification — invalid user was not created
+    const dbUser = await this.db.findUserByUsername('ab');
+    expect(dbUser).toBeNull();
   }
 }
 

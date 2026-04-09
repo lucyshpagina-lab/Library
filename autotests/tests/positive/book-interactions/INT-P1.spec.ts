@@ -31,11 +31,15 @@ class Test extends BaseTest {
     await new BookPage(this.page).open(this.bookId);
     await expect(this.page.locator('#comments-section')).toContainText(this.comment);
 
-    // DB integrity verification — comment FK to book
-    const dbBook = await this.api.getBook(this.bookId);
-    expect(dbBook.status).toBe(200);
-    const comments = dbBook.extract('book.comments');
+    // DB integrity verification (API) — comment FK to book
+    const apiBook = await this.api.getBook(this.bookId);
+    expect(apiBook.status).toBe(200);
+    const comments = apiBook.extract('book.comments');
     expect(comments.some((c: any) => c.text === this.comment)).toBe(true);
+
+    // DB integrity verification (direct DB query)
+    const dbComments = await this.db.findCommentsByBookId(this.bookId);
+    expect(dbComments.some((c: any) => c.text === this.comment)).toBe(true);
   }
 }
 

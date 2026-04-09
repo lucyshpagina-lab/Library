@@ -24,6 +24,9 @@ class Test extends BaseTest {
     expect(await this.page.locator('#comments-section script').count()).toBe(0);
 
     // DB integrity verification — comment exists but XSS payload is stored as plain text, not executable
+    const dbComments = await this.db.findCommentsByBookId(this.bookId);
+    const xssComment = dbComments.find((c: any) => c.text.includes('document.cookie'));
+    expect(xssComment).toBeTruthy();
   }
 }
 

@@ -27,7 +27,7 @@ class Test extends BaseTest {
       ).status,
     );
 
-    // DB integrity verification — server handled the payload without crashing
+    // DB integrity: server handles payload without DB corruption
   }
 }
 

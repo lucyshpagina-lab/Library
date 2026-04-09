@@ -16,9 +16,10 @@ class Test extends BaseTest {
   async execute() {
     expect((await this.api.addFavorite(this.bookId)).status).toBe(409);
     // DB integrity verification — only one favorite exists, not duplicated
-    const favs = await this.api.getFavorites();
-    const bookFavs = favs.extract('favorites').filter((f: any) => f.book.id === this.bookId);
-    expect(bookFavs.length).toBe(1);
+    const me = await this.api.getMe();
+    const userId = me.extract('user.id');
+    const count = await this.db.countFavoritesByUserAndBook(userId, this.bookId);
+    expect(count).toBe(1);
   }
 }
 

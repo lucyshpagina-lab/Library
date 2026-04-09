@@ -20,10 +20,15 @@ class Test extends BaseTest {
     const heart = this.page.locator('header a[href="/favorites"] svg');
     await expect(heart).toHaveClass(/fill-red-500/);
 
-    // DB integrity verification — favorite count matches
+    // DB integrity verification (API) — favorite count matches
     const favs = await this.api.getFavorites();
     expect(favs.status).toBe(200);
     expect(favs.extract('favorites').length).toBeGreaterThanOrEqual(1);
+
+    // DB integrity verification (direct DB query)
+    const me = await this.api.getMe();
+    const dbFavs = await this.db.findFavoritesByUserId(me.extract('user.id'));
+    expect(dbFavs.length).toBeGreaterThanOrEqual(1);
   }
 }
 

@@ -30,13 +30,18 @@ class Test extends BaseTest {
     await this.page.waitForURL(/\/book\/\d+/, { timeout: 10000 });
     await expect(new BookPage(this.page).title).toContainText(this.title);
 
-    // DB integrity verification
+    // DB integrity verification (API)
     const bookId = Number(this.page.url().match(/\/book\/(\d+)/)?.[1]);
     if (bookId) {
-      const dbBook = await this.api.getBook(bookId);
-      expect(dbBook.status).toBe(200);
-      expect(dbBook.extract('book.title')).toBe(this.title);
+      const apiBook = await this.api.getBook(bookId);
+      expect(apiBook.status).toBe(200);
+      expect(apiBook.extract('book.title')).toBe(this.title);
     }
+
+    // DB integrity verification (direct DB query)
+    const dbBook = await this.db.findBookByTitle(this.title);
+    expect(dbBook).not.toBeNull();
+    expect(dbBook.author).toBe('UI Author');
   }
 }
 

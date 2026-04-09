@@ -15,7 +15,7 @@ class Test extends BaseTest {
     await new LoginPage(this.page).open();
     await new LoginPage(this.page).login('nonexistent@test.com', 'wrongpassword');
     await expect(new LoginPage(this.page).tryAgainButton).toBeVisible({ timeout: 10000 });
-    // DB integrity verification — invalid user was not created
+    // DB integrity: login is read-only, no data mutation to verify
   }
 }
 

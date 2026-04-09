@@ -36,9 +36,13 @@ class Test extends BaseTest {
       timeout: 10000,
     });
 
-    // DB integrity verification — book and its related data must not exist
-    const dbBook = await this.api.getBook(this.bookId);
-    expect(dbBook.status).toBe(404);
+    // DB integrity verification (API) — book and its related data must not exist
+    const apiBook = await this.api.getBook(this.bookId);
+    expect(apiBook.status).toBe(404);
+
+    // DB integrity verification (direct DB query)
+    const dbBook = await this.db.findBookById(this.bookId);
+    expect(dbBook).toBeNull();
   }
 }
 

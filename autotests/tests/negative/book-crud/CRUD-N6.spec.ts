@@ -16,7 +16,7 @@ class Test extends BaseTest {
     expect(
       (await unauth.createBook({ title: 'X', author: 'X', genre: 'X', content: 'X' })).status,
     ).toBe(401);
-    // DB integrity verification — no auth means no DB write possible
+    // DB integrity: no auth token means server rejects before DB access
   }
 }
 

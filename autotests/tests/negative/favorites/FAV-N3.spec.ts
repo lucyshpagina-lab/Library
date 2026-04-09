@@ -13,9 +13,11 @@ class Test extends BaseTest {
   async execute() {
     expect((await this.api.addFavorite(999999)).status).toBeGreaterThanOrEqual(400);
     // DB integrity verification — no favorite was created for non-existent book
-    const favs = await this.api.getFavorites();
-    const invalidFavs = favs.extract('favorites').filter((f: any) => f.book.id === 999999);
-    expect(invalidFavs.length).toBe(0);
+    const fav = await this.db.rawQuery(
+      'SELECT COUNT(*)::int as count FROM favorites WHERE book_id = $1',
+      [999999],
+    );
+    expect(fav[0].count).toBe(0);
   }
 }
 

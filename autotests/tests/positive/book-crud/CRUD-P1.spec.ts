@@ -34,12 +34,18 @@ class Test extends BaseTest {
     await expect(new BookPage(this.page).title).toContainText(this.book.title, { timeout: 10000 });
     await expect(this.page.getByText('Test Author', { exact: true })).toBeVisible();
 
-    // DB integrity verification
-    const dbBook = await this.api.getBook(this.book.id);
-    expect(dbBook.status).toBe(200);
-    expect(dbBook.extract('book.title')).toBe(this.book.title);
-    expect(dbBook.extract('book.author')).toBe('Test Author');
-    expect(dbBook.extract('book.genre')).toBe('Science Fiction');
+    // DB integrity verification (API)
+    const apiBook = await this.api.getBook(this.book.id);
+    expect(apiBook.status).toBe(200);
+    expect(apiBook.extract('book.title')).toBe(this.book.title);
+    expect(apiBook.extract('book.author')).toBe('Test Author');
+    expect(apiBook.extract('book.genre')).toBe('Science Fiction');
+
+    // DB integrity verification (direct DB query)
+    const dbBook = await this.db.findBookById(this.book.id);
+    expect(dbBook).not.toBeNull();
+    expect(dbBook.title).toBe(this.book.title);
+    expect(dbBook.author).toBe('Test Author');
   }
 }
 

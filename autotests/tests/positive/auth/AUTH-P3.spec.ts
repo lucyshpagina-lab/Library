@@ -23,6 +23,8 @@ class Test extends BaseTest {
     await this.page.waitForURL('/', { timeout: 10000 });
 
     // DB integrity verification — user record created (verified by successful redirect to home)
+    const dbUser = await this.db.findUserByEmail(`bva-${this.id}@test.com`);
+    expect(dbUser).not.toBeNull();
   }
 }
 

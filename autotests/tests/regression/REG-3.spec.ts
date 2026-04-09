@@ -23,9 +23,11 @@ class Test extends BaseTest {
     await this.page.waitForTimeout(1000);
     await expect(catalog.bookCount).toContainText('10 books found');
 
-    // DB integrity verification — API returns same count
-    const apiBooks = await this.api.getBooks({ genre: 'Fantasy' });
-    expect(apiBooks.extract('total')).toBe(10);
+    // DB integrity verification — DB returns same count
+    const dbCount = await this.db.rawQuery(
+      "SELECT COUNT(*)::int as count FROM books WHERE genre = 'Fantasy'",
+    );
+    expect(dbCount[0].count).toBe(10);
   }
 }
 

@@ -24,6 +24,10 @@ class Test extends BaseTest {
     expect(apiBooks.status).toBe(200);
     const books = apiBooks.extract('books');
     expect(books.some((b: any) => b.title.includes('Dune'))).toBe(true);
+
+    // DB integrity verification (direct DB query)
+    const dbBooks = await this.db.rawQuery("SELECT * FROM books WHERE title ILIKE '%Dune%'");
+    expect(dbBooks.length).toBeGreaterThan(0);
   }
 }
 

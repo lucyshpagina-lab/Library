@@ -458,47 +458,52 @@ class FunReporter implements Reporter {
 <title>${passRate === 100 ? '🏆' : '📊'} Library Tests — ${passed}/${total} passed</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:linear-gradient(180deg,#0b3d0b 0%,#145214 30%,#1a6b1a 60%,#2d8a4e 100%);color:#e8f5e9;padding:1.5rem;cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='24' font-size='24'>☀️</text></svg>") 16 16, auto}
+body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:linear-gradient(180deg,#f0fdf4 0%,#dcfce7 40%,#bbf7d0 100%);color:#14532d;padding:1.5rem;cursor:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text y='24' font-size='24'>☀️</text></svg>") 16 16, auto}
 .container{max-width:1000px;margin:0 auto}
+
+.header{text-align:center;padding:1.5rem 0 1rem}
+.header h1{font-size:2.4rem;color:#166534;margin-bottom:.3rem}
+.header .mood{font-size:1.2rem;margin:.3rem 0;color:#15803d}
+.header .date{opacity:.5;font-size:.8rem;color:#166534}
 
 .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.5rem}
 .cards-sm .card{padding:.7rem .5rem;border-radius:12px}
 .cards-sm .card .icon{font-size:1.2rem;margin-bottom:.2rem}
 .cards-sm .card .val{font-size:1.3rem}
 .cards-sm .card .lbl{font-size:.65rem}
-.card{background:rgba(0,0,0,.25);backdrop-filter:blur(10px);border:1px solid rgba(100,200,100,.2);border-radius:16px;padding:1.2rem;text-align:center;transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(34,197,94,.2)}
+.card{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.2rem;text-align:center;transition:transform .2s,box-shadow .2s}
+.card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(34,197,94,.15)}
 .card .icon{font-size:1.8rem;margin-bottom:.4rem}
 .card .val{font-size:2rem;font-weight:800}
 .card .lbl{font-size:.75rem;opacity:.6;margin-top:.2rem}
-.card.c-pass .val{color:#6ee7b7}.card.c-fail .val{color:#fca5a5}.card.c-skip .val{color:#fde68a}.card.c-total .val{color:#a7f3d0}.card.c-time .val{color:#86efac;font-size:1.4rem}
+.card.c-pass .val{color:#059669}.card.c-fail .val{color:#dc2626}.card.c-skip .val{color:#d97706}.card.c-total .val{color:#166534}.card.c-time .val{color:#0d9488;font-size:1.4rem}
 .card-link{cursor:pointer;position:relative;overflow:hidden}
 .card-link::after{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .2s;background:radial-gradient(circle at center,rgba(255,255,255,.12) 0%,transparent 70%)}
 .card-link:hover::after{opacity:1}
 
-.bar-wrap{background:rgba(0,0,0,.25);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem;border:1px solid rgba(100,200,100,.2)}
-.bar-bg{background:rgba(255,255,255,.1);border-radius:99px;height:36px;overflow:hidden}
+.bar-wrap{background:rgba(255,255,255,.75);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem;border:1px solid rgba(34,197,94,.2)}
+.bar-bg{background:rgba(34,197,94,.1);border-radius:99px;height:36px;overflow:hidden}
 .bar-fill{height:100%;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;transition:width 1.5s cubic-bezier(.4,0,.2,1);background:${barColor}}
 .bar-label{text-align:center;margin-top:.8rem;font-size:1.1rem;font-weight:600}
 
 /* Tabs */
 .tab-panel{display:none}
 .tab-panel.active{display:block}
-.tabs-content{background:rgba(0,0,0,.2);border-radius:16px;overflow:hidden;border:1px solid rgba(100,200,100,.15);margin-bottom:1.5rem}
+.tabs-content{background:rgba(255,255,255,.6);border-radius:16px;overflow:hidden;border:1px solid rgba(34,197,94,.15);margin-bottom:1.5rem}
 .empty-tab{padding:2rem;text-align:center;opacity:.5;font-size:.95rem}
 
 .welcome-msg{text-align:center;padding:3rem 1rem}
 .welcome-emoji{font-size:4rem;margin-bottom:1rem;animation:float 3s ease-in-out infinite}
-.welcome-msg p{font-size:1.2rem;color:#a7f3d0;font-weight:600}
+.welcome-msg p{font-size:1.2rem;color:#166534;font-weight:600}
 .welcome-hint{font-size:.85rem!important;opacity:.5;margin-top:.5rem;font-weight:400!important}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 
 table{width:100%;border-collapse:collapse}
-td{padding:.6rem 1rem;border-bottom:1px solid rgba(100,200,100,.1);vertical-align:top}
-.file-header td{background:rgba(34,197,94,.1);font-weight:700;font-size:.9rem;color:#86efac;padding:.5rem 1rem}
+td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:top}
+.file-header td{background:rgba(34,197,94,.08);font-weight:700;font-size:.9rem;color:#166534;padding:.5rem 1rem}
 .file-stats{float:right;font-size:.75rem;opacity:.6;font-weight:400}
 .test-row{position:relative}
-.test-row:hover{background:rgba(34,197,94,.08)}
+.test-row:hover{background:rgba(34,197,94,.06)}
 .test-row::after{content:'';position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:1.1rem;opacity:0;transition:opacity .2s}
 .test-row:hover::after{opacity:1}
 .test-row.pass::after{content:'🌿'}
@@ -509,18 +514,18 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(100,200,100,.1);vertical-alig
 .test-name{font-weight:600;margin-bottom:.3rem}
 .test-dur{opacity:.4;font-size:.85rem;white-space:nowrap;width:60px}
 .test-status{font-weight:700;font-size:.8rem;width:70px;text-align:center;border-radius:6px;white-space:nowrap}
-.status-pass{color:#6ee7b7}.status-fail{color:#fca5a5}.status-skip{color:#fde68a}
+.status-pass{color:#059669}.status-fail{color:#dc2626}.status-skip{color:#d97706}
 
 .steps{margin-top:.4rem;padding-left:.6rem;border-left:2px solid rgba(16,185,129,.25)}
 .step{font-size:.78rem;padding:2px 0 2px 8px;opacity:.7}
 .step.sub{padding-left:24px}
-.step-pass{opacity:.6}.step-fail{opacity:1;color:#fca5a5}
+.step-pass{opacity:.6}.step-fail{opacity:1;color:#dc2626}
 .step-dur{opacity:.4}
-.error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);border-radius:8px;font-size:.78rem;color:#fca5a5;font-family:monospace;word-break:break-all}
+.error-box{margin-top:.5rem;padding:.6rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;font-size:.78rem;color:#991b1b;font-family:monospace;word-break:break-all}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
 .badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
-.c-pos .val{color:#6ee7b7}.c-neg .val{color:#fca5a5}.c-sec .val{color:#c4b5fd}.c-load .val{color:#7dd3fc}.c-reg .val{color:#fde68a}
+.c-pos .val{color:#059669}.c-neg .val{color:#dc2626}.c-sec .val{color:#7c3aed}.c-load .val{color:#0284c7}.c-reg .val{color:#d97706}
 
 .technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
 .tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
@@ -531,8 +536,8 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(100,200,100,.1);vertical-alig
 
 .screenshot{margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px}
 .screenshot img{max-width:100%;border-radius:6px;margin-top:.3rem;border:1px solid rgba(100,200,140,.15)}
-.screenshot-label{font-size:.75rem;color:#fca5a5;font-weight:600}
-.screenshot img{border:1px solid rgba(100,200,100,.2)}
+.screenshot-label{font-size:.75rem;color:#dc2626;font-weight:600}
+.screenshot img{border:1px solid rgba(34,197,94,.2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 .card,.bar-wrap,.tabs-content{animation:fadeUp .5s ease forwards}
@@ -542,6 +547,12 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(100,200,100,.1);vertical-alig
 </head>
 <body>
 <div class="container">
+
+<div class="header">
+  <h1>${randomAnimal} Library Test Report</h1>
+  <div class="mood">${moodEmoji} ${moodText}</div>
+  <div class="date">Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+</div>
 
 <div class="cards cards-sm">
   <div class="card c-total"><div class="icon">📊</div><div class="val">${total}</div><div class="lbl">Total Tests</div></div>

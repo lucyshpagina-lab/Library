@@ -1,5 +1,6 @@
 import { Page } from '@playwright/test';
 import { ApiHelper } from './api';
+import { DbHelper } from './db';
 
 /**
  * Base class for PRECONDITIONS: creates all test data via API.
@@ -7,9 +8,11 @@ import { ApiHelper } from './api';
  */
 export abstract class BasePreconditions {
   protected api: ApiHelper;
+  protected db: DbHelper;
 
-  constructor(api: ApiHelper) {
+  constructor(api: ApiHelper, db?: DbHelper) {
     this.api = api;
+    this.db = db || new DbHelper();
   }
 
   abstract setup(): Promise<void>;
@@ -17,15 +20,17 @@ export abstract class BasePreconditions {
 
 /**
  * Base class for TEST: contains UI actions and assertions.
- * Receives page and optionally api for tests that need API access.
+ * Receives page and optionally api/db for tests that need direct access.
  */
 export abstract class BaseTest {
   protected page: Page;
   protected api: ApiHelper;
+  protected db: DbHelper;
 
-  constructor(page: Page, api?: ApiHelper) {
+  constructor(page: Page, api?: ApiHelper, db?: DbHelper) {
     this.page = page;
     this.api = api!;
+    this.db = db || new DbHelper();
   }
 
   abstract execute(): Promise<void>;

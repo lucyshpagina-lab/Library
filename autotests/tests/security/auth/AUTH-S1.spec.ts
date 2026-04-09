@@ -19,6 +19,8 @@ class Test extends BaseTest {
     );
 
     // DB integrity verification — SQL injection did not create/modify records
+    const sqlUser = await this.db.findUserByEmail("' OR 1=1 --");
+    expect(sqlUser).toBeNull();
   }
 }
 

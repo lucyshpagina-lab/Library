@@ -19,6 +19,8 @@ class Test extends BaseTest {
     if (res.status === 201) expect(res.extract('user.username')).not.toContain('<script>');
 
     // DB integrity verification — if user was created, username is stored safely (no script execution in DB)
+    const xssUser = await this.db.findUserByUsername('<script>alert("xss")</script>');
+    expect(xssUser).toBeNull();
   }
 }
 

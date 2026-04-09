@@ -36,9 +36,9 @@ class Test extends BaseTest {
     await expect(this.page.getByText('Test Author', { exact: true })).toBeVisible();
 
     // DB integrity verification
-    const dbBook = await this.api.getBook(this.book.id);
-    expect(dbBook.status).toBe(200);
-    expect(dbBook.extract('book.title')).toBe(this.book.title);
+    const dbBook = await this.db.findBookById(this.book.id);
+    expect(dbBook).not.toBeNull();
+    expect(dbBook.title).toBe(this.book.title);
   }
 }
 

@@ -15,9 +15,9 @@ class Test extends BaseTest {
   async execute() {
     expect((await this.api.addComment(this.bookId, '')).status).toBeGreaterThanOrEqual(400);
     // DB integrity verification — empty comment was not stored
-    const dbBook = await this.api.getBook(this.bookId);
-    const emptyComments = dbBook.extract('book.comments').filter((c: any) => c.text === '');
-    expect(emptyComments.length).toBe(0);
+    const comments = await this.db.findCommentsByBookId(this.bookId);
+    const empty = comments.filter((c: any) => c.text === '');
+    expect(empty.length).toBe(0);
   }
 }
 

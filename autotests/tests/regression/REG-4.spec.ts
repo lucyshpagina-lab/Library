@@ -22,9 +22,9 @@ class Test extends BaseTest {
     await expect(fav.emptyState).toContainText('is poor since');
 
     // DB integrity verification — no favorites in DB
-    const favs = await this.api.getFavorites();
-    expect(favs.status).toBe(200);
-    expect(favs.extract('favorites')).toHaveLength(0);
+    const me = await this.api.getMe();
+    const dbFavs = await this.db.findFavoritesByUserId(me.extract('user.id'));
+    expect(dbFavs.length).toBe(0);
   }
 }
 

@@ -19,9 +19,8 @@ class Test extends BaseTest {
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
     // DB integrity verification — no book with empty title was created
-    const books = await this.api.getBooks({ search: '' });
-    const emptyTitleBooks = books.extract('books').filter((b: any) => b.title === '');
-    expect(emptyTitleBooks.length).toBe(0);
+    const count = await this.db.countBooksByTitle('');
+    expect(count).toBe(0);
   }
 }
 

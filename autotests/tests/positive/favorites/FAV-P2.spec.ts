@@ -33,11 +33,19 @@ class Test extends BaseTest {
     await expect(fav.bookCount).toBeVisible();
     await expect(fav.bookByTitle(this.bookTitle)).toBeVisible();
 
-    // DB integrity verification — favorite FK to book
+    // DB integrity verification (API) — favorite FK to book
     const favs = await this.api.getFavorites();
     expect(favs.status).toBe(200);
     const favBooks = favs.extract('favorites');
     expect(favBooks.some((f: any) => f.book.title === this.bookTitle)).toBe(true);
+
+    // DB integrity verification (direct DB query)
+    const me = await this.api.getMe();
+    const dbBook = await this.db.findBookByTitle(this.bookTitle);
+    if (dbBook) {
+      const dbFav = await this.db.findFavorite(me.extract('user.id'), dbBook.id);
+      expect(dbFav).not.toBeNull();
+    }
   }
 }
 

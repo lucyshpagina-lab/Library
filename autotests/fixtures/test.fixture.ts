@@ -1,5 +1,6 @@
 import { test as base, Page } from '@playwright/test';
 import { ApiHelper } from '../helpers/api';
+import { DbHelper } from '../helpers/db';
 import { AuthSetup } from '../preconditions/AuthSetup';
 import { BookSetup } from '../preconditions/BookSetup';
 import { FavoriteSetup } from '../preconditions/FavoriteSetup';
@@ -10,6 +11,7 @@ import { Postconditions } from '../postconditions/Postconditions';
 
 type TestFixtures = {
   api: ApiHelper;
+  db: DbHelper;
   authSetup: AuthSetup;
   bookSetup: BookSetup;
   favoriteSetup: FavoriteSetup;
@@ -43,21 +45,44 @@ export const test = base.extend<TestFixtures>({
     });
   },
 
-  authSetup: async ({ api }, use) => { await use(new AuthSetup(api)); },
-  bookSetup: async ({ api }, use) => { await use(new BookSetup(api)); },
-  favoriteSetup: async ({ api }, use) => { await use(new FavoriteSetup(api)); },
-  authCleanup: async ({ api }, use) => { await use(new AuthCleanup(api)); },
-  bookCleanup: async ({ api }, use) => { await use(new BookCleanup(api)); },
-  favoriteCleanup: async ({ api }, use) => { await use(new FavoriteCleanup(api)); },
-  postconditions: async ({ api }, use) => { await use(new Postconditions(api)); },
+  db: async ({}, use) => {
+    await use(new DbHelper());
+  },
+
+  authSetup: async ({ api }, use) => {
+    await use(new AuthSetup(api));
+  },
+  bookSetup: async ({ api }, use) => {
+    await use(new BookSetup(api));
+  },
+  favoriteSetup: async ({ api }, use) => {
+    await use(new FavoriteSetup(api));
+  },
+  authCleanup: async ({ api }, use) => {
+    await use(new AuthCleanup(api));
+  },
+  bookCleanup: async ({ api }, use) => {
+    await use(new BookCleanup(api));
+  },
+  favoriteCleanup: async ({ api }, use) => {
+    await use(new FavoriteCleanup(api));
+  },
+  postconditions: async ({ api }, use) => {
+    await use(new Postconditions(api));
+  },
 
   authenticatedPage: async ({ browser, api }, use) => {
     const context = await browser.newContext();
     const token = api.getToken();
     if (token) {
-      await context.addCookies([{
-        name: 'token', value: token, domain: 'localhost', path: '/',
-      }]);
+      await context.addCookies([
+        {
+          name: 'token',
+          value: token,
+          domain: 'localhost',
+          path: '/',
+        },
+      ]);
     }
     const page = await context.newPage();
     await use(page);

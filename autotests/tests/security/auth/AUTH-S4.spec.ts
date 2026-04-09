@@ -30,7 +30,7 @@ class Test extends BaseTest {
     const d2 = Date.now() - t2;
     expect(Math.abs(d1 - d2)).toBeLessThan(500);
 
-    // DB integrity verification — no DB mutation (timing attack is read-only)
+    // DB integrity: timing check is read-only
   }
 }
 

@@ -17,10 +17,15 @@ class Test extends BaseTest {
     await expect(fav.brokenHeartEmoji).toBeVisible();
     await expect(fav.emptyState).toContainText('is poor since');
 
-    // DB integrity verification — no favorites in DB
+    // DB integrity verification (API) — no favorites in DB
     const favs = await this.api.getFavorites();
     expect(favs.status).toBe(200);
     expect(favs.extract('favorites')).toHaveLength(0);
+
+    // DB integrity verification (direct DB query)
+    const me = await this.api.getMe();
+    const dbFavs = await this.db.findFavoritesByUserId(me.extract('user.id'));
+    expect(dbFavs.length).toBe(0);
   }
 }
 

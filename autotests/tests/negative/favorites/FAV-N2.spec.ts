@@ -13,7 +13,7 @@ class Preconditions extends BasePreconditions {
 class Test extends BaseTest {
   async execute() {
     expect((await new ApiHelper().addFavorite(1)).status).toBe(401);
-    // DB integrity verification — no auth means no DB write possible
+    // DB integrity: no auth token means server rejects before DB access
   }
 }
 
