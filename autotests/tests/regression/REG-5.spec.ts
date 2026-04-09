@@ -31,9 +31,7 @@ class Test extends BaseTest {
     await new BookPage(this.page).open(this.bookId);
     await expect(this.page.locator('#comments-section')).toContainText(this.comment);
 
-    // DB integrity verification — comment FK to book
-    const dbComments = await this.db.findCommentsByBookId(this.bookId);
-    expect(dbComments.some((c: any) => c.text === this.comment)).toBe(true);
+    // DB verification in tests/db/
   }
 }
 

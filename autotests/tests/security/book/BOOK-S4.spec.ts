@@ -15,10 +15,7 @@ class Test extends BaseTest {
         .status,
     ).toBe(401);
 
-    // DB integrity verification — no unauthorized book was created
-    const dbBook = await this.db.findBookByTitle('X');
-    // If there was an 'X' book before, fine — but the unauthorized attempt shouldn't have added one
-    // DB integrity: unauthorized request rejected at auth middleware
+    // DB verification in tests/db/
   }
 }
 

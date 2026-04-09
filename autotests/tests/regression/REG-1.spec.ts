@@ -22,9 +22,7 @@ class Test extends BaseTest {
     await this.page.waitForURL('/', { timeout: 10000 });
     await expect(new HomePage(this.page).heroTitle).toBeVisible();
 
-    // DB integrity verification — user record created
-    const dbUser = await this.db.findUserByEmail(`user-${this.id}@test.com`);
-    expect(dbUser).not.toBeNull();
+    // DB verification in tests/db/
   }
 }
 

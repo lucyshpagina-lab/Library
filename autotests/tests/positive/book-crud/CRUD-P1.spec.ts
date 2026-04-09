@@ -41,11 +41,7 @@ class Test extends BaseTest {
     expect(apiBook.extract('book.author')).toBe('Test Author');
     expect(apiBook.extract('book.genre')).toBe('Science Fiction');
 
-    // DB integrity verification (direct DB query)
-    const dbBook = await this.db.findBookById(this.book.id);
-    expect(dbBook).not.toBeNull();
-    expect(dbBook.title).toBe(this.book.title);
-    expect(dbBook.author).toBe('Test Author');
+    // DB verification in tests/db/
   }
 }
 

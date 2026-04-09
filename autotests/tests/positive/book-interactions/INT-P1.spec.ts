@@ -37,9 +37,7 @@ class Test extends BaseTest {
     const comments = apiBook.extract('book.comments');
     expect(comments.some((c: any) => c.text === this.comment)).toBe(true);
 
-    // DB integrity verification (direct DB query)
-    const dbComments = await this.db.findCommentsByBookId(this.bookId);
-    expect(dbComments.some((c: any) => c.text === this.comment)).toBe(true);
+    // DB verification in tests/db/
   }
 }
 

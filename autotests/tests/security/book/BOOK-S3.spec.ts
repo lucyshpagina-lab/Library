@@ -23,9 +23,7 @@ class Test extends BaseTest {
   async execute() {
     expect((await new ApiHelper().deleteBook(this.bookId)).status).toBe(401);
 
-    // DB integrity verification — book still exists (not deleted)
-    const dbBook = await this.db.findBookById(this.bookId);
-    expect(dbBook).not.toBeNull();
+    // DB verification in tests/db/
   }
 }
 

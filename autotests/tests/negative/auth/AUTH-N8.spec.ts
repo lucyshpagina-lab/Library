@@ -22,9 +22,7 @@ class Test extends BaseTest {
     await expect(this.page.locator('.bg-red-50')).toContainText('Passwords do not match', {
       timeout: 5000,
     });
-    // DB integrity verification — invalid user was not created
-    const dbUser = await this.db.findUserByEmail('mismatch@test.com');
-    expect(dbUser).toBeNull();
+    // DB verification in tests/db/
   }
 }
 

@@ -76,6 +76,7 @@ const TAB_CATEGORIES: TabCategory[] = [
     matcher: (f) => f.includes('/security/'),
   },
   { key: 'load', label: 'Load', color: '#7dd3fc', matcher: (f) => f.includes('/load/') },
+  { key: 'db', label: 'DB', color: '#14b8a6', matcher: (f) => f.includes('/db/') },
   { key: 'regression', label: 'Regression', color: '#fbbf24', matcher: (f) => true },
 ];
 
@@ -84,6 +85,7 @@ function classifyTest(filePath: string): string {
   if (filePath.includes('/negative/')) return 'negative';
   if (filePath.includes('/security/')) return 'security';
   if (filePath.includes('/load/')) return 'load';
+  if (filePath.includes('/db/')) return 'db';
   if (filePath.includes('/regression/')) return 'regression';
   return 'regression';
 }
@@ -145,6 +147,10 @@ class FunReporter implements Reporter {
     const loadPass = this.results.filter(
       (r) => r.test.location.file.includes('/load/') && r.result.status === 'passed',
     ).length;
+    const db = this.results.filter((r) => r.test.location.file.includes('/db/')).length;
+    const dbPass = this.results.filter(
+      (r) => r.test.location.file.includes('/db/') && r.result.status === 'passed',
+    ).length;
     const regression = this.results.filter((r) =>
       r.test.location.file.includes('/regression/'),
     ).length;
@@ -163,6 +169,7 @@ class FunReporter implements Reporter {
     console.log(`  🔴 Negative:  ${negPass}/${negative}`);
     console.log(`  🟣 Security:  ${secPass}/${security}`);
     console.log(`  🔵 Load:      ${loadPass}/${load}`);
+    console.log(`  🟠 DB:        ${dbPass}/${db}`);
     console.log(`  🟡 Regression: ${regPass}/${regression}`);
     console.log('═'.repeat(60));
 
@@ -182,11 +189,13 @@ class FunReporter implements Reporter {
       negative,
       security,
       load,
+      db,
       regression,
       posPass,
       negPass,
       secPass,
       loadPass,
+      dbPass,
       regPass,
     });
   }
@@ -205,11 +214,13 @@ class FunReporter implements Reporter {
       negative: number;
       security: number;
       load: number;
+      db: number;
       regression: number;
       posPass: number;
       negPass: number;
       secPass: number;
       loadPass: number;
+      dbPass: number;
       regPass: number;
     },
   ) {
@@ -224,6 +235,7 @@ class FunReporter implements Reporter {
       negative: [],
       security: [],
       load: [],
+      db: [],
       regression: [],
     };
 
@@ -525,7 +537,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 
 .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;letter-spacing:1px;margin-left:6px;vertical-align:middle}
 .badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
-.c-pos .val{color:#059669}.c-neg .val{color:#dc2626}.c-sec .val{color:#7c3aed}.c-load .val{color:#0284c7}.c-reg .val{color:#d97706}
+.c-pos .val{color:#059669}.c-neg .val{color:#dc2626}.c-sec .val{color:#7c3aed}.c-load .val{color:#0284c7}.c-db .val{color:#0d9488}.c-reg .val{color:#d97706}
 
 .technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
 .tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
@@ -562,11 +574,12 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
 </div>
 
-<div class="cards" style="grid-template-columns:repeat(5,1fr)">
+<div class="cards" style="grid-template-columns:repeat(7,1fr)">
   <div class="card card-link c-pos" data-nav-tab="positive"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
   <div class="card card-link c-neg" data-nav-tab="negative"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
   <div class="card card-link c-sec" data-nav-tab="security"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
   <div class="card card-link c-load" data-nav-tab="load"><div class="icon">🔵</div><div class="val">${types.loadPass}/${types.load}</div><div class="lbl">Load</div></div>
+  <div class="card card-link c-db" data-nav-tab="db"><div class="icon">🗄️</div><div class="val">${types.dbPass}/${types.db}</div><div class="lbl">DB</div></div>
   <div class="card card-link c-reg" data-nav-tab="regression"><div class="icon">🟡</div><div class="val">${types.regPass}/${types.regression}</div><div class="lbl">Regression</div></div>
 </div>
 

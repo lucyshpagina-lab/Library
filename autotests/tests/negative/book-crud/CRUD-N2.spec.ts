@@ -14,10 +14,7 @@ class Test extends BaseTest {
   bookId!: number;
   async execute() {
     expect((await this.api.rateBook(this.bookId, 0)).status).toBeGreaterThanOrEqual(400);
-    // DB integrity verification — invalid rating was not stored
-    const ratings = await this.db.findRatingsByBookId(this.bookId);
-    const zeroRatings = ratings.filter((r: any) => r.value === 0);
-    expect(zeroRatings.length).toBe(0);
+    // DB verification in tests/db/
   }
 }
 

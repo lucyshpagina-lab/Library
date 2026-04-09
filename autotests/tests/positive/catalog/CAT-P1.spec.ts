@@ -23,11 +23,7 @@ class Test extends BaseTest {
     const apiBooks = await this.api.getBooks({ genre: 'Fantasy' });
     expect(apiBooks.extract('total')).toBe(10);
 
-    // DB integrity verification (direct DB query)
-    const dbCount = await this.db.rawQuery(
-      "SELECT COUNT(*)::int as count FROM books WHERE genre = 'Fantasy'",
-    );
-    expect(dbCount[0].count).toBe(10);
+    // DB verification in tests/db/
   }
 }
 

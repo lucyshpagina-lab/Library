@@ -35,10 +35,7 @@ class Test extends BaseTest {
     expect(apiBook.extract('book.ratingsCount')).toBeGreaterThanOrEqual(1);
     expect(apiBook.extract('book.avgRating')).toBeGreaterThanOrEqual(1);
 
-    // DB integrity verification (direct DB query)
-    const dbRatings = await this.db.findRatingsByBookId(this.bookId);
-    expect(dbRatings.length).toBeGreaterThanOrEqual(1);
-    expect(dbRatings.some((r: any) => r.value === 5)).toBe(true);
+    // DB verification in tests/db/
   }
 }
 

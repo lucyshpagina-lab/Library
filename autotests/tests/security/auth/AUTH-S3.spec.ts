@@ -18,11 +18,7 @@ class Test extends BaseTest {
     );
     expect([201, 400, 409, 422, 500]).toContain(res.status);
 
-    // DB integrity verification — if user was created, username is stored safely (no script execution in DB)
-    const tables = await this.db.rawQuery(
-      "SELECT COUNT(*)::int as count FROM information_schema.tables WHERE table_name = 'users'",
-    );
-    expect(tables[0].count).toBe(1);
+    // DB verification in tests/db/
   }
 }
 

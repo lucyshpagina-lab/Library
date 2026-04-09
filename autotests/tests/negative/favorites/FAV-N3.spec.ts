@@ -12,12 +12,7 @@ class Preconditions extends BasePreconditions {
 class Test extends BaseTest {
   async execute() {
     expect((await this.api.addFavorite(999999)).status).toBeGreaterThanOrEqual(400);
-    // DB integrity verification — no favorite was created for non-existent book
-    const fav = await this.db.rawQuery(
-      'SELECT COUNT(*)::int as count FROM favorites WHERE book_id = $1',
-      [999999],
-    );
-    expect(fav[0].count).toBe(0);
+    // DB verification in tests/db/
   }
 }
 

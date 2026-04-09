@@ -18,9 +18,7 @@ class Test extends BaseTest {
       content: 'Content',
     });
     expect(res.status).toBeGreaterThanOrEqual(400);
-    // DB integrity verification — no book with empty title was created
-    const count = await this.db.countBooksByTitle('');
-    expect(count).toBe(0);
+    // DB verification in tests/db/
   }
 }
 

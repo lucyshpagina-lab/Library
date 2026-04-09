@@ -38,10 +38,7 @@ class Test extends BaseTest {
       expect(apiBook.extract('book.title')).toBe(this.title);
     }
 
-    // DB integrity verification (direct DB query)
-    const dbBook = await this.db.findBookByTitle(this.title);
-    expect(dbBook).not.toBeNull();
-    expect(dbBook.author).toBe('UI Author');
+    // DB verification in tests/db/
   }
 }
 

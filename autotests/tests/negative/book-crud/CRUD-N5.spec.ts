@@ -16,10 +16,7 @@ class Test extends BaseTest {
     expect(
       (await this.api.addComment(this.bookId, 'x'.repeat(1001))).status,
     ).toBeGreaterThanOrEqual(400);
-    // DB integrity verification — oversized comment was not stored
-    const comments = await this.db.findCommentsByBookId(this.bookId);
-    const long = comments.filter((c: any) => c.text.length > 1000);
-    expect(long.length).toBe(0);
+    // DB verification in tests/db/
   }
 }
 

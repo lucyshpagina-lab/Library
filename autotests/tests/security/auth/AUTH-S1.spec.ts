@@ -18,9 +18,7 @@ class Test extends BaseTest {
       { timeout: 10000 },
     );
 
-    // DB integrity verification — SQL injection did not create/modify records
-    const sqlUser = await this.db.findUserByEmail("' OR 1=1 --");
-    expect(sqlUser).toBeNull();
+    // DB verification in tests/db/
   }
 }
 

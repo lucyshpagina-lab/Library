@@ -30,12 +30,7 @@ class Test extends BaseTest {
       expect(await this.page.locator('img[src="x"]').count()).toBe(0);
     }
 
-    // DB integrity verification — book exists but XSS payload is stored as plain text, not executable
-    if (this.bookId) {
-      const dbBook = await this.db.findBookById(this.bookId);
-      expect(dbBook).not.toBeNull();
-      expect(dbBook.title).toBe('<img src=x onerror=alert("xss")>');
-    }
+    // DB verification in tests/db/
   }
 }
 

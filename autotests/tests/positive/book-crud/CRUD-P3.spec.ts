@@ -40,9 +40,7 @@ class Test extends BaseTest {
     const apiBook = await this.api.getBook(this.bookId);
     expect(apiBook.status).toBe(404);
 
-    // DB integrity verification (direct DB query)
-    const dbBook = await this.db.findBookById(this.bookId);
-    expect(dbBook).toBeNull();
+    // DB verification in tests/db/
   }
 }
 

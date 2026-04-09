@@ -25,10 +25,7 @@ class Test extends BaseTest {
     expect(favs.status).toBe(200);
     expect(favs.extract('favorites').length).toBeGreaterThanOrEqual(1);
 
-    // DB integrity verification (direct DB query)
-    const me = await this.api.getMe();
-    const dbFavs = await this.db.findFavoritesByUserId(me.extract('user.id'));
-    expect(dbFavs.length).toBeGreaterThanOrEqual(1);
+    // DB verification in tests/db/
   }
 }
 

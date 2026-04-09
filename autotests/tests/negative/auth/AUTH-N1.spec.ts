@@ -20,9 +20,7 @@ class Test extends BaseTest {
     await reg.confirmPasswordInput.fill('Password123!');
     await reg.submitButton.click();
     await expect(this.page).toHaveURL(/register/);
-    // DB integrity verification — invalid user was not created
-    const dbUser = await this.db.findUserByEmail('not-an-email');
-    expect(dbUser).toBeNull();
+    // DB verification in tests/db/
   }
 }
 

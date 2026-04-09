@@ -24,10 +24,7 @@ class Test extends BaseTest {
     await this.page.waitForURL('/', { timeout: 10000 });
     await expect(new HomePage(this.page).heroTitle).toBeVisible();
 
-    // DB integrity verification — user created (verified by successful redirect and home page visible)
-    const dbUser = await this.db.findUserByEmail(`user-${this.id}@test.com`);
-    expect(dbUser).not.toBeNull();
-    expect(dbUser.username).toBe(`user${this.id}`);
+    // DB verification in tests/db/
   }
 }
 

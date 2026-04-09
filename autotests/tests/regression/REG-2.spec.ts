@@ -35,10 +35,7 @@ class Test extends BaseTest {
     await expect(new BookPage(this.page).title).toContainText(this.book.title, { timeout: 10000 });
     await expect(this.page.getByText('Test Author', { exact: true })).toBeVisible();
 
-    // DB integrity verification
-    const dbBook = await this.db.findBookById(this.book.id);
-    expect(dbBook).not.toBeNull();
-    expect(dbBook.title).toBe(this.book.title);
+    // DB verification in tests/db/
   }
 }
 
