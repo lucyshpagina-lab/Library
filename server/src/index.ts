@@ -9,6 +9,7 @@ import booksRoutes from './routes/books.routes';
 import favoritesRoutes from './routes/favorites.routes';
 import progressRoutes from './routes/progress.routes';
 import userRoutes from './routes/user.routes';
+import chatRoutes from './routes/chat.routes';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -29,6 +30,7 @@ app.use('/api/books', booksRoutes);
 app.use('/api/favorites', favoritesRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.use(errorHandler);
 
