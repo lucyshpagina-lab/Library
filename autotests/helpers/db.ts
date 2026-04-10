@@ -1,11 +1,13 @@
 const DATABASE_URL =
   process.env.DATABASE_URL || 'postgresql://lucy:password@localhost:5432/library_dev';
 
+import pg from 'pg';
+const { Pool } = pg;
+
 let pool: any = null;
 
-async function getPool(): Promise<any> {
+function getPool(): any {
   if (!pool) {
-    const { Pool } = await import('pg');
     pool = new Pool({ connectionString: DATABASE_URL, max: 3 });
   }
   return pool;
@@ -13,8 +15,7 @@ async function getPool(): Promise<any> {
 
 export class DbHelper {
   private async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const p = await getPool();
-    const { rows } = await p.query(sql, params);
+    const { rows } = await getPool().query(sql, params);
     return rows as T[];
   }
 

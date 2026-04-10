@@ -505,30 +505,38 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .header .mood{font-size:1.2rem;margin:.3rem 0;color:#15803d}
 .header .date{opacity:.5;font-size:.8rem;color:#166534}
 
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.5rem}
-.cards-cat{grid-template-columns:repeat(auto-fit,minmax(80px,1fr))}
-.cards-cat .card{padding:.7rem .4rem;border-radius:12px}
-.cards-cat .card .icon{font-size:1.2rem;margin-bottom:.2rem}
-.cards-cat .card .val{font-size:1.2rem}
-.cards-cat .card .lbl{font-size:.6rem}
-.cards-sm .card{padding:.7rem .5rem;border-radius:12px}
-.cards-sm .card .icon{font-size:1.2rem;margin-bottom:.2rem}
-.cards-sm .card .val{font-size:1.3rem}
-.cards-sm .card .lbl{font-size:.65rem}
-.card{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.2rem;text-align:center;transition:transform .2s,box-shadow .2s}
+/* Summary row: pie chart + duration */
+.summary-row{display:flex;gap:1.2rem;margin-bottom:1.5rem;align-items:stretch}
+.pie-wrap{flex:1;background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem;display:flex;align-items:center;gap:1.5rem}
+.pie-chart{width:100px;height:100px;transform:rotate(-90deg);flex-shrink:0}
+.pie-center{text-align:center;flex-shrink:0;margin-left:-115px;width:100px}
+.pie-val{font-size:1.6rem;font-weight:800;color:#166534}
+.pie-lbl{font-size:.7rem;opacity:.5}
+.pie-legend{display:flex;flex-direction:column;gap:.3rem;margin-left:1rem}
+.legend-item{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:#374151}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.duration-frame{width:140px;background:rgba(255,255,255,.75);border:2px dashed rgba(34,197,94,.3);border-radius:16px;padding:1.2rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.dur-icon{font-size:2rem;margin-bottom:.3rem}
+.dur-val{font-size:1.8rem;font-weight:800;color:#0d9488}
+.dur-lbl{font-size:.65rem;opacity:.5;margin-top:.2rem}
+.dur-avg{font-size:.7rem;color:#059669;margin-top:.4rem;background:#d1fae5;padding:2px 8px;border-radius:8px}
+
+/* Category cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:.6rem;margin-bottom:1.5rem}
+.card{background:rgba(255,255,255,.75);backdrop-filter:blur(10px);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:.7rem .4rem;text-align:center;transition:transform .2s,box-shadow .2s}
 .card:hover{transform:translateY(-4px);box-shadow:0 8px 25px rgba(34,197,94,.15)}
-.card .icon{font-size:1.8rem;margin-bottom:.4rem}
-.card .val{font-size:2rem;font-weight:800}
-.card .lbl{font-size:.75rem;opacity:.6;margin-top:.2rem}
-.card.c-pass .val{color:#059669}.card.c-fail .val{color:#dc2626}.card.c-skip .val{color:#d97706}.card.c-total .val{color:#166534}.card.c-time .val{color:#0d9488;font-size:1.4rem}
+.card .icon{font-size:1.2rem;margin-bottom:.2rem}
+.card .val{font-size:1.2rem;font-weight:800}
+.card .lbl{font-size:.6rem;opacity:.6;margin-top:.1rem}
 .card-link{cursor:pointer;position:relative;overflow:hidden}
 .card-link::after{content:'';position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .2s;background:radial-gradient(circle at center,rgba(255,255,255,.12) 0%,transparent 70%)}
 .card-link:hover::after{opacity:1}
 
-.bar-wrap{background:rgba(255,255,255,.75);border-radius:16px;padding:1.2rem;margin-bottom:1.2rem;border:1px solid rgba(34,197,94,.2)}
-.bar-bg{background:rgba(34,197,94,.1);border-radius:99px;height:36px;overflow:hidden}
-.bar-fill{height:100%;border-radius:99px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;transition:width 1.5s cubic-bezier(.4,0,.2,1);background:${barColor}}
-.bar-label{text-align:center;margin-top:.8rem;font-size:1.1rem;font-weight:600}
+/* Creative divider */
+.divider{display:flex;align-items:center;justify-content:center;gap:.8rem;margin:1.2rem 0;padding:.8rem}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,94,.3),transparent)}
+.divider-leaf{font-size:1.2rem}
+.divider-text{font-size:1rem;font-weight:700;color:#166534;white-space:nowrap}
 
 /* Tabs */
 .tab-panel{display:none}
@@ -571,6 +579,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 .badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
 .c-pos .val{color:#059669}.c-neg .val{color:#dc2626}.c-sec .val{color:#7c3aed}.c-load .val{color:#0284c7}.c-chat .val{color:#db2777}.c-db .val{color:#0d9488}.c-reg .val{color:#d97706}
 
+
 .technique-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;margin-left:4px;vertical-align:middle}
 .tag-ep{background:#dbeafe;color:#1d4ed8}.tag-bva{background:#fef3c7;color:#92400e}
 .tag-state{background:#d1fae5;color:#065f46}.tag-uc{background:#e0e7ff;color:#3730a3}
@@ -584,7 +593,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 .screenshot img{border:1px solid rgba(34,197,94,.2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.card,.bar-wrap,.tabs-content{animation:fadeUp .5s ease forwards}
+.card,.summary-row,.divider,.tabs-content{animation:fadeUp .5s ease forwards}
 .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
 @media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}.tabs-nav{flex-direction:column}}
 </style>
@@ -598,15 +607,32 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="date">Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
 </div>
 
-<div class="cards cards-sm">
-  <div class="card c-total"><div class="icon">📊</div><div class="val">${total}</div><div class="lbl">Total Tests</div></div>
-  <div class="card c-pass"><div class="icon">✅</div><div class="val">${passed}</div><div class="lbl">Passed</div></div>
-  <div class="card c-fail"><div class="icon">${failed > 0 ? '💀' : '😎'}</div><div class="val">${failed}</div><div class="lbl">Failed</div></div>
-  <div class="card c-skip"><div class="icon">⏭️</div><div class="val">${skipped}</div><div class="lbl">Skipped</div></div>
-  <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
+<div class="summary-row">
+  <div class="pie-wrap">
+    <svg viewBox="0 0 36 36" class="pie-chart">
+      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3.5"/>
+      <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3.5" stroke-dasharray="${passRate} ${100 - passRate}" stroke-dashoffset="25" stroke-linecap="round"/>
+      ${failed > 0 ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-dasharray="${Math.round((failed / total) * 100)} ${100 - Math.round((failed / total) * 100)}" stroke-dashoffset="${25 - passRate}" stroke-linecap="round"/>` : ''}
+    </svg>
+    <div class="pie-center">
+      <div class="pie-val">${passRate}%</div>
+      <div class="pie-lbl">${total} tests</div>
+    </div>
+    <div class="pie-legend">
+      <span class="legend-item"><span class="legend-dot" style="background:#059669"></span>${passed} passed</span>
+      ${failed > 0 ? `<span class="legend-item"><span class="legend-dot" style="background:#dc2626"></span>${failed} failed</span>` : ''}
+      ${skipped > 0 ? `<span class="legend-item"><span class="legend-dot" style="background:#d97706"></span>${skipped} skipped</span>` : ''}
+    </div>
+  </div>
+  <div class="duration-frame">
+    <div class="dur-icon">⚡</div>
+    <div class="dur-val">${duration}s</div>
+    <div class="dur-lbl">Total Duration</div>
+    <div class="dur-avg">${(parseFloat(duration) / total).toFixed(2)}s avg</div>
+  </div>
 </div>
 
-<div class="cards cards-cat">
+<div class="cards">
   <div class="card card-link c-pos" data-nav-tab="positive"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
   <div class="card card-link c-neg" data-nav-tab="negative"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
   <div class="card card-link c-sec" data-nav-tab="security"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>
@@ -616,9 +642,10 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="card card-link c-reg" data-nav-tab="regression"><div class="icon">🟡</div><div class="val">${types.regPass}/${types.regression}</div><div class="lbl">Regression</div></div>
 </div>
 
-<div class="bar-wrap">
-  <div class="bar-bg"><div class="bar-fill" style="width:${passRate}%">${passRate}%</div></div>
-  <div class="bar-label">${passRate === 100 ? '🏆 FLAWLESS VICTORY!' : passRate >= 80 ? '💪 Almost perfect!' : `🔧 ${100 - passRate}% needs fixing`}</div>
+<div class="divider">
+  <span class="divider-leaf">🌿</span>
+  <span class="divider-text">${passRate === 100 ? '🏆 FLAWLESS VICTORY!' : passRate >= 80 ? '💪 Almost perfect!' : `🔧 ${100 - passRate}% needs fixing`}</span>
+  <span class="divider-leaf">🌿</span>
 </div>
 
 <div class="tabs-content">
