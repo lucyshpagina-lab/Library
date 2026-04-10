@@ -524,16 +524,10 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .header .mood{font-size:1.2rem;margin:.3rem 0 .8rem;color:#15803d}
 .header .date{font-size:.8rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;display:inline-block;padding:4px 16px;border-radius:99px}
 
-/* Summary row: pie chart + duration */
-.summary-row{display:flex;gap:1.2rem;margin-bottom:1.5rem;align-items:stretch}
-.prev-panel{width:140px;background:rgba(255,255,255,.6);border:1px dashed rgba(150,150,150,.3);border-radius:16px;padding:1rem .8rem;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.panel-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:.3rem}
-.panel-date{font-size:.65rem;color:#9ca3af;margin-bottom:.5rem}
-.panel-stats{display:flex;flex-direction:column;gap:.3rem;width:100%}
-.ps{font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.3rem}
-.ps.passed{color:#059669}.ps.failed{color:#dc2626}.ps.skipped{color:#d97706}.ps.total{color:#166534}
-.pie-wrap{flex:1;position:relative;background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem;display:flex;align-items:center;gap:1rem}
-.dur-diff{font-size:.65rem;margin-top:.3rem;font-weight:600}
+/* Summary */
+.summary-centered{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem}
+.pie-wrap{background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem 2rem;display:flex;align-items:center;gap:1.2rem}
+.total-duration{margin-top:.6rem;font-size:.8rem;color:#6b7280;font-weight:500}
 .pie-svg-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
 .pie-chart{width:120px;height:120px;transform:rotate(-90deg)}
 .pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -545,11 +539,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .stat-val{font-size:1.3rem;font-weight:800}
 .stat-lbl{font-size:.65rem;opacity:.5}
 .stat-group{display:flex;flex-direction:column}
-.duration-frame{width:160px;background:rgba(255,255,255,.75);border:2px dashed rgba(185,160,100,.35);border-radius:16px;padding:1.5rem 1rem;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
-.dur-icon{font-size:2.2rem;margin-bottom:.4rem}
-.dur-val{font-size:2rem;font-weight:800;color:#0d9488}
-.dur-lbl{font-size:.7rem;opacity:.5;margin-top:.2rem}
-.dur-avg{font-size:.7rem;color:#059669;margin-top:.5rem;background:#d1fae5;padding:3px 10px;border-radius:8px}
 
 /* Category cards */
 .cards{display:flex;gap:.5rem;margin-bottom:1.5rem}
@@ -623,7 +612,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 .screenshot img{border:1px solid rgba(34,197,94,.2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.card,.summary-row,.divider,.tabs-content{animation:fadeUp .5s ease forwards}
+.card,.summary-centered,.divider,.tabs-content{animation:fadeUp .5s ease forwards}
 .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
 @media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}.tabs-nav{flex-direction:column}}
 </style>
@@ -637,23 +626,8 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="date">Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
 </div>
 
-<div class="summary-row">
-  ${
-    prev
-      ? `<div class="result-panel prev-panel">
-    <div class="panel-label">Previous Run</div>
-    <div class="panel-date">${new Date(prev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} &middot; ${prev.duration}s</div>
-    <div class="panel-stats">
-      <span class="ps passed">✅ ${prev.passed}</span>
-      <span class="ps failed">❌ ${prev.failed}</span>
-      <span class="ps skipped">⏭️ ${prev.skipped}</span>
-      <span class="ps total">📊 ${prev.total}</span>
-    </div>
-  </div>`
-      : ''
-  }
+<div class="summary-centered">
   <div class="pie-wrap">
-    <div class="panel-label" style="position:absolute;top:8px;left:12px">Current Run</div>
     <div class="pie-svg-wrap">
       <svg viewBox="0 0 36 36" class="pie-chart">
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
@@ -672,13 +646,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
       <div class="stat-item"><span class="stat-dot" style="background:#166534"></span><div class="stat-group"><span class="stat-val" style="color:#166534">${total}</span><span class="stat-lbl">Total</span></div></div>
     </div>
   </div>
-  <div class="duration-frame">
-    <div class="dur-icon">⚡</div>
-    <div class="dur-val">${duration}s</div>
-    <div class="dur-lbl">Total Duration</div>
-    <div class="dur-avg">${(parseFloat(duration) / total).toFixed(2)}s avg</div>
-    ${prev ? `<div class="dur-diff">${parseFloat(duration) < parseFloat(prev.duration) ? '🟢' : '🔴'} ${parseFloat(duration) < parseFloat(prev.duration) ? '' : '+'}${(parseFloat(duration) - parseFloat(prev.duration)).toFixed(1)}s</div>` : ''}
-  </div>
+  <div class="total-duration">⚡ total duration: ${duration}s (${(parseFloat(duration) / total).toFixed(2)}s avg)</div>
 </div>
 
 <div class="cards">
