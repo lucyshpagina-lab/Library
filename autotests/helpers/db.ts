@@ -1,26 +1,20 @@
-import { Pool } from 'pg';
-
 const DATABASE_URL =
   process.env.DATABASE_URL || 'postgresql://lucy:password@localhost:5432/library_dev';
 
-let pool: Pool | null = null;
+let pool: any = null;
 
-function getPool(): Pool {
+async function getPool(): Promise<any> {
   if (!pool) {
+    const { Pool } = await import('pg');
     pool = new Pool({ connectionString: DATABASE_URL, max: 3 });
   }
   return pool;
 }
 
 export class DbHelper {
-  private pool: Pool;
-
-  constructor() {
-    this.pool = getPool();
-  }
-
   private async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const { rows } = await this.pool.query(sql, params);
+    const p = await getPool();
+    const { rows } = await p.query(sql, params);
     return rows as T[];
   }
 

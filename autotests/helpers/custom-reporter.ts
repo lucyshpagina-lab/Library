@@ -311,34 +311,49 @@ class FunReporter implements Reporter {
         continue;
       }
 
-      // Group by file
-      const byFile: Record<string, typeof items> = {};
+      // Group by subfolder (auth, book-crud, catalog, etc.)
+      const byGroup: Record<string, typeof items> = {};
       for (const item of items) {
-        const file = item.test.location.file.split('/').pop() || 'unknown';
-        if (!byFile[file]) byFile[file] = [];
-        byFile[file].push(item);
+        const parts = item.test.location.file.split('/');
+        const fileName = parts.pop() || 'unknown';
+        const parentDir = parts.pop() || '';
+        const groupKey =
+          parentDir === cat.key || parentDir === 'tests'
+            ? fileName.replace('.spec.ts', '')
+            : parentDir;
+        if (!byGroup[groupKey]) byGroup[groupKey] = [];
+        byGroup[groupKey].push(item);
       }
 
       let rows = '';
-      for (const [file, tests] of Object.entries(byFile)) {
-        const fileIcon = file.includes('auth')
-          ? '🔐'
-          : file.includes('catalog')
-            ? '📚'
-            : file.includes('crud')
-              ? '📖'
-              : file.includes('interact')
-                ? '⭐'
-                : file.includes('fav')
-                  ? '❤️'
-                  : file.includes('api')
-                    ? '🛡️'
-                    : file.includes('load')
-                      ? '⚡'
-                      : '📋';
+      for (const [group, tests] of Object.entries(byGroup)) {
+        const g = group.toLowerCase();
+        const groupLabel = g.includes('auth')
+          ? '🔐 Auth'
+          : g.includes('catalog')
+            ? '📚 Catalog'
+            : g.includes('crud') || g.includes('book-crud')
+              ? '📖 Book CRUD'
+              : g.includes('interact')
+                ? '⭐ Book Interactions'
+                : g.includes('fav')
+                  ? '❤️ Favorites'
+                  : g.includes('api')
+                    ? '🛡️ API'
+                    : g.includes('book')
+                      ? '📖 Book'
+                      : g.includes('load')
+                        ? '⚡ Load'
+                        : g.includes('chat')
+                          ? '💬 Chatbot'
+                          : g.includes('db')
+                            ? '🗄️ DB'
+                            : g.includes('reg')
+                              ? '📋 Regression'
+                              : `📋 ${group}`;
         const filePass = tests.filter((t) => t.result.status === 'passed').length;
         const fileTotal = tests.length;
-        rows += `<tr class="file-header"><td colspan="5">${fileIcon} ${file} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
+        rows += `<tr class="file-header"><td colspan="5">${groupLabel} <span class="file-stats">${filePass}/${fileTotal} passed</span></td></tr>`;
 
         for (const { test: t, result: r, num: n } of tests) {
           const emoji = EMOJIS[r.status] || '❓';
@@ -491,6 +506,11 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .header .date{opacity:.5;font-size:.8rem;color:#166534}
 
 .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.5rem}
+.cards-cat{grid-template-columns:repeat(auto-fit,minmax(80px,1fr))}
+.cards-cat .card{padding:.7rem .4rem;border-radius:12px}
+.cards-cat .card .icon{font-size:1.2rem;margin-bottom:.2rem}
+.cards-cat .card .val{font-size:1.2rem}
+.cards-cat .card .lbl{font-size:.6rem}
 .cards-sm .card{padding:.7rem .5rem;border-radius:12px}
 .cards-sm .card .icon{font-size:1.2rem;margin-bottom:.2rem}
 .cards-sm .card .val{font-size:1.3rem}
@@ -551,12 +571,12 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 .badge-pos{background:#10b981;color:#fff}.badge-neg{background:#ef4444;color:#fff}.badge-sec{background:#8b5cf6;color:#fff}.badge-load{background:#60a5fa;color:#fff}.badge-reg{background:#f59e0b;color:#fff}
 .c-pos .val{color:#059669}.c-neg .val{color:#dc2626}.c-sec .val{color:#7c3aed}.c-load .val{color:#0284c7}.c-chat .val{color:#db2777}.c-db .val{color:#0d9488}.c-reg .val{color:#d97706}
 
-.technique-tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.65rem;font-weight:600;margin-left:4px;vertical-align:middle}
-.tag-ep{background:rgba(59,130,246,.2);color:#93c5fd}.tag-bva{background:rgba(245,158,11,.2);color:#fcd34d}
-.tag-state{background:rgba(16,185,129,.2);color:#6ee7b7}.tag-uc{background:rgba(99,102,241,.2);color:#a5b4fc}
-.tag-ce{background:rgba(236,72,153,.2);color:#f9a8d4}.tag-sql{background:rgba(239,68,68,.2);color:#fca5a5}
-.tag-xss{background:rgba(249,115,22,.2);color:#fdba74}.tag-sec{background:rgba(139,92,246,.2);color:#c4b5fd}
-.tag-dos{background:rgba(220,38,38,.2);color:#fca5a5}.tag-other{background:rgba(148,163,184,.2);color:#cbd5e1}
+.technique-tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.65rem;font-weight:700;margin-left:4px;vertical-align:middle}
+.tag-ep{background:#dbeafe;color:#1d4ed8}.tag-bva{background:#fef3c7;color:#92400e}
+.tag-state{background:#d1fae5;color:#065f46}.tag-uc{background:#e0e7ff;color:#3730a3}
+.tag-ce{background:#fce7f3;color:#9d174d}.tag-sql{background:#fee2e2;color:#991b1b}
+.tag-xss{background:#ffedd5;color:#9a3412}.tag-sec{background:#ede9fe;color:#5b21b6}
+.tag-dos{background:#fee2e2;color:#991b1b}.tag-other{background:#f1f5f9;color:#475569}
 
 .screenshot{margin-top:.5rem;padding:.5rem;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.15);border-radius:8px}
 .screenshot img{max-width:100%;border-radius:6px;margin-top:.3rem;border:1px solid rgba(100,200,140,.15)}
@@ -586,7 +606,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="card c-time"><div class="icon">⚡</div><div class="val">${duration}s</div><div class="lbl">Duration</div></div>
 </div>
 
-<div class="cards" style="grid-template-columns:repeat(4,1fr)">
+<div class="cards cards-cat">
   <div class="card card-link c-pos" data-nav-tab="positive"><div class="icon">🟢</div><div class="val">${types.posPass}/${types.positive}</div><div class="lbl">Positive</div></div>
   <div class="card card-link c-neg" data-nav-tab="negative"><div class="icon">🔴</div><div class="val">${types.negPass}/${types.negative}</div><div class="lbl">Negative</div></div>
   <div class="card card-link c-sec" data-nav-tab="security"><div class="icon">🟣</div><div class="val">${types.secPass}/${types.security}</div><div class="lbl">Security</div></div>

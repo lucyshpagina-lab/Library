@@ -10,9 +10,9 @@ export abstract class BasePreconditions {
   protected api: ApiHelper;
   protected db: DbHelper;
 
-  constructor(api: ApiHelper, db?: DbHelper) {
+  constructor(api: ApiHelper) {
     this.api = api;
-    this.db = db || new DbHelper();
+    this.db = new DbHelper();
   }
 
   abstract setup(): Promise<void>;
@@ -20,17 +20,17 @@ export abstract class BasePreconditions {
 
 /**
  * Base class for TEST: contains UI actions and assertions.
- * Receives page and optionally api/db for tests that need direct access.
+ * Receives page and optionally api for tests that need API access.
  */
 export abstract class BaseTest {
   protected page: Page;
   protected api: ApiHelper;
   protected db: DbHelper;
 
-  constructor(page: Page, api?: ApiHelper, db?: DbHelper) {
+  constructor(page: Page, api?: ApiHelper) {
     this.page = page;
     this.api = api!;
-    this.db = db || new DbHelper();
+    this.db = new DbHelper();
   }
 
   abstract execute(): Promise<void>;

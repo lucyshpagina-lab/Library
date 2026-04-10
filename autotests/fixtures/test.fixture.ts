@@ -1,6 +1,5 @@
 import { test as base, Page } from '@playwright/test';
 import { ApiHelper } from '../helpers/api';
-import { DbHelper } from '../helpers/db';
 import { AuthSetup } from '../preconditions/AuthSetup';
 import { BookSetup } from '../preconditions/BookSetup';
 import { FavoriteSetup } from '../preconditions/FavoriteSetup';
@@ -11,7 +10,6 @@ import { Postconditions } from '../postconditions/Postconditions';
 
 type TestFixtures = {
   api: ApiHelper;
-  db: DbHelper;
   authSetup: AuthSetup;
   bookSetup: BookSetup;
   favoriteSetup: FavoriteSetup;
@@ -43,10 +41,6 @@ export const test = base.extend<TestFixtures>({
     await base.step('POSTCONDITIONS: Cleanup all test data', async () => {
       await api.cleanupAll();
     });
-  },
-
-  db: async ({}, use) => {
-    await use(new DbHelper());
   },
 
   authSetup: async ({ api }, use) => {
