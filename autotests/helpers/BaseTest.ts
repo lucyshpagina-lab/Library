@@ -1,6 +1,5 @@
 import { Page } from '@playwright/test';
 import { ApiHelper } from './api';
-import { DbHelper } from './db';
 
 /**
  * Base class for PRECONDITIONS: creates all test data via API.
@@ -8,11 +7,18 @@ import { DbHelper } from './db';
  */
 export abstract class BasePreconditions {
   protected api: ApiHelper;
-  protected db: DbHelper;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected db: any;
 
   constructor(api: ApiHelper) {
     this.api = api;
-    this.db = new DbHelper();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    try {
+      const { DbHelper } = require('./db');
+      this.db = new DbHelper();
+    } catch {
+      this.db = null;
+    }
   }
 
   abstract setup(): Promise<void>;
@@ -25,12 +31,19 @@ export abstract class BasePreconditions {
 export abstract class BaseTest {
   protected page: Page;
   protected api: ApiHelper;
-  protected db: DbHelper;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected db: any;
 
   constructor(page: Page, api?: ApiHelper) {
     this.page = page;
     this.api = api!;
-    this.db = new DbHelper();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    try {
+      const { DbHelper } = require('./db');
+      this.db = new DbHelper();
+    } catch {
+      this.db = null;
+    }
   }
 
   abstract execute(): Promise<void>;

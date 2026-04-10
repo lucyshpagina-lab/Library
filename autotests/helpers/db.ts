@@ -1,14 +1,13 @@
+import pg from 'pg';
+
 const DATABASE_URL =
   process.env.DATABASE_URL || 'postgresql://lucy:password@localhost:5432/library_dev';
 
-import pg from 'pg';
-const { Pool } = pg;
+let pool: InstanceType<typeof pg.Pool> | null = null;
 
-let pool: any = null;
-
-function getPool(): any {
+function getPool() {
   if (!pool) {
-    pool = new Pool({ connectionString: DATABASE_URL, max: 3 });
+    pool = new pg.Pool({ connectionString: DATABASE_URL, max: 3 });
   }
   return pool;
 }
