@@ -240,6 +240,25 @@ class FunReporter implements Reporter {
     if (!fs.existsSync(reportDir)) fs.mkdirSync(reportDir, { recursive: true });
     if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
+    // Load previous result for comparison
+    const historyPath = path.join(dataDir, 'last-result.json');
+    let prev: {
+      passed: number;
+      failed: number;
+      skipped: number;
+      total: number;
+      duration: string;
+      date: string;
+    } | null = null;
+    try {
+      if (fs.existsSync(historyPath)) prev = JSON.parse(fs.readFileSync(historyPath, 'utf-8'));
+    } catch {}
+    // Save current result for next comparison
+    fs.writeFileSync(
+      historyPath,
+      JSON.stringify({ passed, failed, skipped, total, duration, date: new Date().toISOString() }),
+    );
+
     // Group results by category, then by file within each category
     const categorized: Record<string, { test: TestCase; result: TestResult; num: number }[]> = {
       positive: [],
@@ -506,8 +525,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .header .date{font-size:.8rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;display:inline-block;padding:4px 16px;border-radius:99px}
 
 /* Summary row: pie chart + duration */
-.summary-row{display:flex;gap:2rem;margin-bottom:1.5rem;align-items:center}
-.pie-wrap{flex:1;background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem;display:flex;align-items:center;gap:1rem}
+.summary-row{display:flex;gap:1.2rem;margin-bottom:1.5rem;align-items:stretch}
+.prev-panel{width:140px;background:rgba(255,255,255,.6);border:1px dashed rgba(150,150,150,.3);border-radius:16px;padding:1rem .8rem;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.panel-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#6b7280;margin-bottom:.3rem}
+.panel-date{font-size:.65rem;color:#9ca3af;margin-bottom:.5rem}
+.panel-stats{display:flex;flex-direction:column;gap:.3rem;width:100%}
+.ps{font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:.3rem}
+.ps.passed{color:#059669}.ps.failed{color:#dc2626}.ps.skipped{color:#d97706}.ps.total{color:#166534}
+.pie-wrap{flex:1;position:relative;background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem;display:flex;align-items:center;gap:1rem}
+.dur-diff{font-size:.65rem;margin-top:.3rem;font-weight:600}
 .pie-svg-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
 .pie-chart{width:120px;height:120px;transform:rotate(-90deg)}
 .pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -612,7 +638,22 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 </div>
 
 <div class="summary-row">
+  ${
+    prev
+      ? `<div class="result-panel prev-panel">
+    <div class="panel-label">Previous Run</div>
+    <div class="panel-date">${new Date(prev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} &middot; ${prev.duration}s</div>
+    <div class="panel-stats">
+      <span class="ps passed">✅ ${prev.passed}</span>
+      <span class="ps failed">❌ ${prev.failed}</span>
+      <span class="ps skipped">⏭️ ${prev.skipped}</span>
+      <span class="ps total">📊 ${prev.total}</span>
+    </div>
+  </div>`
+      : ''
+  }
   <div class="pie-wrap">
+    <div class="panel-label" style="position:absolute;top:8px;left:12px">Current Run</div>
     <div class="pie-svg-wrap">
       <svg viewBox="0 0 36 36" class="pie-chart">
         <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
@@ -636,6 +677,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
     <div class="dur-val">${duration}s</div>
     <div class="dur-lbl">Total Duration</div>
     <div class="dur-avg">${(parseFloat(duration) / total).toFixed(2)}s avg</div>
+    ${prev ? `<div class="dur-diff">${parseFloat(duration) < parseFloat(prev.duration) ? '🟢' : '🔴'} ${parseFloat(duration) < parseFloat(prev.duration) ? '' : '+'}${(parseFloat(duration) - parseFloat(prev.duration)).toFixed(1)}s</div>` : ''}
   </div>
 </div>
 

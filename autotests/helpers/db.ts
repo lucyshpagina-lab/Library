@@ -1,18 +1,21 @@
-import pg from 'pg';
-
 const DATABASE_URL =
   process.env.DATABASE_URL || 'postgresql://lucy:password@localhost:5432/library_dev';
 
-let pool: InstanceType<typeof pg.Pool> | null = null;
+// pg is loaded lazily to avoid breaking Playwright's module transform
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let pool: any = null;
 
 function getPool() {
   if (!pool) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const pg = require('pg');
     pool = new pg.Pool({ connectionString: DATABASE_URL, max: 3 });
   }
   return pool;
 }
 
 export class DbHelper {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async query<T = any>(sql: string, params: any[] = []): Promise<T[]> {
     const { rows } = await getPool().query(sql, params);
     return rows as T[];
