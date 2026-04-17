@@ -12,13 +12,6 @@ export abstract class BasePreconditions {
 
   constructor(api: ApiHelper) {
     this.api = api;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    try {
-      const { DbHelper } = require('./db');
-      this.db = new DbHelper();
-    } catch {
-      this.db = null;
-    }
   }
 
   abstract setup(): Promise<void>;
@@ -37,13 +30,6 @@ export abstract class BaseTest {
   constructor(page: Page, api?: ApiHelper) {
     this.page = page;
     this.api = api!;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    try {
-      const { DbHelper } = require('./db');
-      this.db = new DbHelper();
-    } catch {
-      this.db = null;
-    }
   }
 
   abstract execute(): Promise<void>;

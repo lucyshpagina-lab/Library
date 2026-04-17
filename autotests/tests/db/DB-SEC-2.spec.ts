@@ -1,3 +1,4 @@
+import { DbHelper } from '../../helpers/db';
 import { test, expect } from '../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 import { ApiHelper } from '../../helpers/api';
@@ -28,6 +29,7 @@ class Postconditions extends BasePostconditions {
 test('DB-SEC-2: XSS username not stored in database [DB]', async ({ page, api }) => {
   const pre = new Preconditions(api);
   const action = new Test(page);
+  action.db = new DbHelper();
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

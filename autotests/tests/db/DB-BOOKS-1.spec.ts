@@ -1,3 +1,4 @@
+import { DbHelper } from '../../helpers/db';
 import { test, expect } from '../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 
@@ -42,6 +43,7 @@ test('DB-BOOKS-1: Created book exists in database with correct fields [DB]', asy
 }) => {
   const pre = new Preconditions(api);
   const action = new Test(authenticatedPage, api);
+  action.db = new DbHelper();
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

@@ -1,3 +1,4 @@
+import { DbHelper } from '../../helpers/db';
 import { test, expect } from '../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 
@@ -21,6 +22,7 @@ class Postconditions extends BasePostconditions {
 test('DB-SEC-1: SQL injection login does not create DB record [DB]', async ({ page, api }) => {
   const pre = new Preconditions(api);
   const action = new Test(page);
+  action.db = new DbHelper();
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());

@@ -1,3 +1,4 @@
+import { DbHelper } from '../../helpers/db';
 import { test, expect } from '../../fixtures/test.fixture';
 import { BasePreconditions, BaseTest, BasePostconditions } from '../../helpers/BaseTest';
 
@@ -32,6 +33,7 @@ test('DB-SEC-5: XSS in comment text stored in database [DB]', async ({
 }) => {
   const pre = new Preconditions(api);
   const action = new Test(authenticatedPage, api);
+  action.db = new DbHelper();
   const post = new Postconditions(api);
 
   await test.step('PRECONDITIONS', () => pre.setup());
