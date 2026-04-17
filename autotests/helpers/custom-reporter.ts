@@ -530,7 +530,6 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .run-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1e3a5f;margin-bottom:.2rem}
 .run-date{font-size:.65rem;color:#1e3a5f;font-weight:600;margin-bottom:.6rem;background:#e0ecf8;padding:2px 10px;border-radius:99px}
 .run-body{display:flex;align-items:center;gap:1rem;flex:1}
-.run-dur{font-size:.7rem;color:#6b7280;margin-top:.5rem;font-weight:500}
 .pie-svg-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
 .pie-chart{width:120px;height:120px;transform:rotate(-90deg)}
 .pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -542,8 +541,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .stat-val{font-size:1.1rem;font-weight:800}
 .stat-lbl{font-size:.6rem;opacity:.5}
 .stat-group{display:flex;flex-direction:column}
-.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#059669;color:#fff;border:none;padding:10px 20px;border-radius:99px;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.2);transition:all .2s}
-.scroll-top:hover{background:#047857;transform:translateY(-2px)}
+.stat-dur{grid-column:1/-1;display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:#6b7280;font-weight:500;padding-top:.2rem;border-top:1px solid rgba(34,197,94,.1);margin-top:.1rem}
+.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#f4a0b5;color:#fff;border:none;padding:10px 20px;border-radius:99px;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.15);transition:all .2s}
+.scroll-top:hover{background:#e8899e;transform:translateY(-2px)}
 
 /* Category cards */
 .cards{display:flex;gap:.5rem;margin-bottom:1.5rem}
@@ -637,13 +637,13 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
     <div class="run-label">previous run</div>
     <div class="run-date">${new Date(prev.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(prev.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
     <div class="run-body">
-      <div class="pie-svg-wrap" style="width:90px;height:90px">
-        <svg viewBox="0 0 36 36" style="width:90px;height:90px;transform:rotate(-90deg)">
+      <div class="pie-svg-wrap">
+        <svg viewBox="0 0 36 36" class="pie-chart">
           <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
           <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="${prev.total > 0 ? Math.round((prev.passed / prev.total) * 100) : 0} ${prev.total > 0 ? 100 - Math.round((prev.passed / prev.total) * 100) : 100}" stroke-dashoffset="25" stroke-linecap="round"/>
         </svg>
         <div class="pie-center">
-          <div class="pie-val" style="font-size:1.3rem">${prev.total > 0 ? Math.round((prev.passed / prev.total) * 100) : 0}%</div>
+          <div class="pie-val">${prev.total > 0 ? Math.round((prev.passed / prev.total) * 100) : 0}%</div>
           <div class="pie-lbl">${prev.total} tests</div>
         </div>
       </div>
@@ -652,9 +652,9 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
         <div class="stat-item"><span class="stat-dot" style="background:#dc2626"></span><div class="stat-group"><span class="stat-val" style="color:#dc2626">${prev.failed}</span><span class="stat-lbl">Failed</span></div></div>
         <div class="stat-item"><span class="stat-dot" style="background:#d97706"></span><div class="stat-group"><span class="stat-val" style="color:#d97706">${prev.skipped}</span><span class="stat-lbl">Skipped</span></div></div>
         <div class="stat-item"><span class="stat-dot" style="background:#166534"></span><div class="stat-group"><span class="stat-val" style="color:#166534">${prev.total}</span><span class="stat-lbl">Total</span></div></div>
+        <div class="stat-dur">⚡ duration: ${prev.duration}s</div>
       </div>
     </div>
-    <div class="run-dur">⚡ duration: ${prev.duration}s</div>
   </div>`
       : ''
   }
@@ -678,9 +678,9 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
         <div class="stat-item"><span class="stat-dot" style="background:#dc2626"></span><div class="stat-group"><span class="stat-val" style="color:#dc2626">${failed}</span><span class="stat-lbl">Failed</span></div></div>
         <div class="stat-item"><span class="stat-dot" style="background:#d97706"></span><div class="stat-group"><span class="stat-val" style="color:#d97706">${skipped}</span><span class="stat-lbl">Skipped</span></div></div>
         <div class="stat-item"><span class="stat-dot" style="background:#166534"></span><div class="stat-group"><span class="stat-val" style="color:#166534">${total}</span><span class="stat-lbl">Total</span></div></div>
+        <div class="stat-dur">⚡ duration: ${duration}s (${(parseFloat(duration) / total).toFixed(2)}s avg)</div>
       </div>
     </div>
-    <div class="run-dur">⚡ total duration: ${duration}s (${(parseFloat(duration) / total).toFixed(2)}s avg)</div>
   </div>
 </div>
 
