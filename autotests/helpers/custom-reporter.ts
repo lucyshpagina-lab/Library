@@ -525,9 +525,20 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .header .date{font-size:.8rem;color:#92400e;background:#fef3c7;border:1px solid #fde68a;display:inline-block;padding:4px 16px;border-radius:99px}
 
 /* Summary */
-.summary-centered{display:flex;flex-direction:column;align-items:center;margin-bottom:1.5rem}
+.summary-row{display:flex;gap:1rem;margin-bottom:1.5rem;align-items:stretch;justify-content:center}
+.prev-panel{background:rgba(255,255,255,.6);border:1px dashed rgba(34,197,94,.25);border-radius:16px;padding:1rem 1.2rem;display:flex;flex-direction:column;align-items:center;min-width:160px}
+.prev-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#dc2626;margin-bottom:.2rem}
+.prev-date{font-size:.7rem;color:#92400e;font-weight:600;margin-bottom:.5rem}
+.prev-list{list-style:none;padding:0;margin:0;font-size:.75rem;color:#374151}
+.prev-list li{padding:2px 0;display:flex;justify-content:space-between;gap:.8rem}
+.prev-list .pl{opacity:.6}
+.prev-list .pv{font-weight:700}
+.cur-panel{display:flex;flex-direction:column;align-items:center}
+.cur-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#059669;margin-bottom:.3rem}
 .pie-wrap{background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.5rem 2rem;display:flex;align-items:center;gap:1.2rem}
-.total-duration{margin-top:.6rem;font-size:.8rem;color:#6b7280;font-weight:500}
+.total-duration{margin-top:.6rem;font-size:.75rem;color:#6b7280;font-weight:500}
+.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#059669;color:#fff;border:none;padding:8px 16px;border-radius:99px;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:opacity .2s;opacity:.7}
+.scroll-top:hover{opacity:1}
 .pie-svg-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
 .pie-chart{width:120px;height:120px;transform:rotate(-90deg)}
 .pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
@@ -612,7 +623,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
 .screenshot img{border:1px solid rgba(34,197,94,.2)}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.card,.summary-centered,.divider,.tabs-content{animation:fadeUp .5s ease forwards}
+.card,.summary-row,.divider,.tabs-content{animation:fadeUp .5s ease forwards}
 .card:nth-child(2){animation-delay:.05s}.card:nth-child(3){animation-delay:.1s}.card:nth-child(4){animation-delay:.15s}.card:nth-child(5){animation-delay:.2s}
 @media(max-width:640px){.cards{grid-template-columns:repeat(3,1fr)}.fun-box{grid-template-columns:1fr}.tabs-nav{flex-direction:column}}
 </style>
@@ -626,27 +637,45 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   <div class="date">Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
 </div>
 
-<div class="summary-centered">
-  <div class="pie-wrap">
-    <div class="pie-svg-wrap">
-      <svg viewBox="0 0 36 36" class="pie-chart">
-        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="${passRate} ${100 - passRate}" stroke-dashoffset="25" stroke-linecap="round"/>
-        ${failed > 0 ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="${Math.round((failed / total) * 100)} ${100 - Math.round((failed / total) * 100)}" stroke-dashoffset="${25 - passRate}" stroke-linecap="round"/>` : ''}
-      </svg>
-      <div class="pie-center">
-        <div class="pie-val">${passRate}%</div>
-        <div class="pie-lbl">${total} tests</div>
+<div class="summary-row">
+  ${
+    prev
+      ? `<div class="prev-panel">
+    <div class="prev-label">previous run</div>
+    <div class="prev-date">${new Date(prev.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(prev.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
+    <ul class="prev-list">
+      <li><span class="pl">passed</span><span class="pv" style="color:#059669">${prev.passed}</span></li>
+      <li><span class="pl">failed</span><span class="pv" style="color:#dc2626">${prev.failed}</span></li>
+      <li><span class="pl">skipped</span><span class="pv" style="color:#d97706">${prev.skipped}</span></li>
+      <li><span class="pl">total</span><span class="pv">${prev.total}</span></li>
+      <li><span class="pl">duration</span><span class="pv" style="color:#0d9488">${prev.duration}s</span></li>
+    </ul>
+  </div>`
+      : ''
+  }
+  <div class="cur-panel">
+    <div class="cur-label">current run</div>
+    <div class="pie-wrap">
+      <div class="pie-svg-wrap">
+        <svg viewBox="0 0 36 36" class="pie-chart">
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
+          <circle cx="18" cy="18" r="15.9" fill="none" stroke="#059669" stroke-width="3" stroke-dasharray="${passRate} ${100 - passRate}" stroke-dashoffset="25" stroke-linecap="round"/>
+          ${failed > 0 ? `<circle cx="18" cy="18" r="15.9" fill="none" stroke="#dc2626" stroke-width="3" stroke-dasharray="${Math.round((failed / total) * 100)} ${100 - Math.round((failed / total) * 100)}" stroke-dashoffset="${25 - passRate}" stroke-linecap="round"/>` : ''}
+        </svg>
+        <div class="pie-center">
+          <div class="pie-val">${passRate}%</div>
+          <div class="pie-lbl">${total} tests</div>
+        </div>
+      </div>
+      <div class="pie-stats">
+        <div class="stat-item"><span class="stat-dot" style="background:#059669"></span><div class="stat-group"><span class="stat-val" style="color:#059669">${passed}</span><span class="stat-lbl">Passed</span></div></div>
+        <div class="stat-item"><span class="stat-dot" style="background:#dc2626"></span><div class="stat-group"><span class="stat-val" style="color:#dc2626">${failed}</span><span class="stat-lbl">Failed</span></div></div>
+        <div class="stat-item"><span class="stat-dot" style="background:#d97706"></span><div class="stat-group"><span class="stat-val" style="color:#d97706">${skipped}</span><span class="stat-lbl">Skipped</span></div></div>
+        <div class="stat-item"><span class="stat-dot" style="background:#166534"></span><div class="stat-group"><span class="stat-val" style="color:#166534">${total}</span><span class="stat-lbl">Total</span></div></div>
       </div>
     </div>
-    <div class="pie-stats">
-      <div class="stat-item"><span class="stat-dot" style="background:#059669"></span><div class="stat-group"><span class="stat-val" style="color:#059669">${passed}</span><span class="stat-lbl">Passed</span></div></div>
-      <div class="stat-item"><span class="stat-dot" style="background:#dc2626"></span><div class="stat-group"><span class="stat-val" style="color:#dc2626">${failed}</span><span class="stat-lbl">Failed</span></div></div>
-      <div class="stat-item"><span class="stat-dot" style="background:#d97706"></span><div class="stat-group"><span class="stat-val" style="color:#d97706">${skipped}</span><span class="stat-lbl">Skipped</span></div></div>
-      <div class="stat-item"><span class="stat-dot" style="background:#166534"></span><div class="stat-group"><span class="stat-val" style="color:#166534">${total}</span><span class="stat-lbl">Total</span></div></div>
-    </div>
+    <div class="total-duration">⚡ total duration: ${duration}s (${(parseFloat(duration) / total).toFixed(2)}s avg)</div>
   </div>
-  <div class="total-duration">⚡ total duration: ${duration}s (${(parseFloat(duration) / total).toFixed(2)}s avg)</div>
 </div>
 
 <div class="cards">
@@ -669,6 +698,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   ${tabPanelsHtml}
 </div>
 
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ give me to the top</button>
 
 </div>
 <script>
@@ -684,6 +714,9 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   document.querySelectorAll('.card-link[data-nav-tab]').forEach(function(card){
     card.addEventListener('click', function(){ switchTab(card.getAttribute('data-nav-tab')); });
   });
+  var btn=document.querySelector('.scroll-top');
+  window.addEventListener('scroll',function(){btn.style.display=window.scrollY>300?'block':'none'});
+  btn.style.display='none';
 })();
 </script>
 </body>
