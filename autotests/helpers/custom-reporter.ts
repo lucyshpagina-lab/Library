@@ -542,8 +542,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 .stat-lbl{font-size:.6rem;opacity:.5}
 .stat-group{display:flex;flex-direction:column}
 .stat-dur{grid-column:1/-1;display:flex;align-items:center;gap:.3rem;font-size:.7rem;color:#6b7280;font-weight:500;padding-top:.2rem;border-top:1px solid rgba(34,197,94,.1);margin-top:.1rem}
-.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#f4a0b5;color:#fff;border:none;padding:10px 20px;border-radius:99px;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.15);transition:all .2s}
-.scroll-top:hover{background:#e8899e;transform:translateY(-2px)}
+.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#ec4899;color:#fff;border:none;padding:12px 24px;border-radius:99px;font-size:.9rem;font-weight:700;cursor:pointer;box-shadow:0 4px 18px rgba(236,72,153,.4);transition:all .2s;opacity:1}
+.scroll-top:hover{background:#db2777;transform:translateY(-3px);box-shadow:0 6px 24px rgba(236,72,153,.5)}
 
 /* Category cards */
 .cards{display:flex;gap:.5rem;margin-bottom:1.5rem}
@@ -720,8 +720,6 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   document.querySelectorAll('.card-link[data-nav-tab]').forEach(function(card){
     card.addEventListener('click', function(){ switchTab(card.getAttribute('data-nav-tab')); });
   });
-  var btn=document.querySelector('.scroll-top');
-  window.addEventListener('scroll',function(){btn.style.opacity=window.scrollY>100?'1':'0.4'});
 })();
 </script>
 </body>
