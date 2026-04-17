@@ -721,8 +721,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
     card.addEventListener('click', function(){ switchTab(card.getAttribute('data-nav-tab')); });
   });
   var btn=document.querySelector('.scroll-top');
-  window.addEventListener('scroll',function(){btn.style.display=window.scrollY>300?'block':'none'});
-  btn.style.display='none';
+  window.addEventListener('scroll',function(){btn.style.opacity=window.scrollY>100?'1':'0.4'});
 })();
 </script>
 </body>
