@@ -526,27 +526,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh;background:lin
 
 /* Summary */
 .summary-row{display:flex;gap:1rem;margin-bottom:1.5rem;align-items:stretch;justify-content:center}
-.run-panel{background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.2rem 1.5rem;display:flex;flex-direction:column;align-items:center}
-.run-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.2rem}
-.run-label.prev{color:#dc2626}
-.run-label.cur{color:#059669}
+.run-panel{flex:1;max-width:420px;background:rgba(255,255,255,.75);border:1px solid rgba(34,197,94,.2);border-radius:16px;padding:1.2rem 1.5rem;display:flex;flex-direction:column;align-items:center}
+.run-label{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#1e3a5f;margin-bottom:.2rem}
 .run-date{font-size:.65rem;color:#1e3a5f;font-weight:600;margin-bottom:.6rem;background:#e0ecf8;padding:2px 10px;border-radius:99px}
-.run-body{display:flex;align-items:center;gap:1rem}
+.run-body{display:flex;align-items:center;gap:1rem;flex:1}
 .run-dur{font-size:.7rem;color:#6b7280;margin-top:.5rem;font-weight:500}
-.pie-wrap{display:flex;align-items:center;gap:1.2rem}
-.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#059669;color:#fff;border:none;padding:8px 16px;border-radius:99px;font-size:.8rem;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:opacity .2s;opacity:.7}
-.scroll-top:hover{opacity:1}
 .pie-svg-wrap{position:relative;width:120px;height:120px;flex-shrink:0}
 .pie-chart{width:120px;height:120px;transform:rotate(-90deg)}
 .pie-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .pie-val{font-size:1.8rem;font-weight:800;color:#166534}
 .pie-lbl{font-size:.65rem;opacity:.5}
-.pie-stats{display:grid;grid-template-columns:1fr 1fr;gap:.5rem .8rem;margin-left:.5rem}
-.stat-item{display:flex;align-items:center;gap:.4rem}
-.stat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
-.stat-val{font-size:1.3rem;font-weight:800}
-.stat-lbl{font-size:.65rem;opacity:.5}
+.pie-stats{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .6rem}
+.stat-item{display:flex;align-items:center;gap:.3rem}
+.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.stat-val{font-size:1.1rem;font-weight:800}
+.stat-lbl{font-size:.6rem;opacity:.5}
 .stat-group{display:flex;flex-direction:column}
+.scroll-top{position:fixed;bottom:24px;right:24px;z-index:99;background:#059669;color:#fff;border:none;padding:10px 20px;border-radius:99px;font-size:.85rem;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(0,0,0,.2);transition:all .2s}
+.scroll-top:hover{background:#047857;transform:translateY(-2px)}
 
 /* Category cards */
 .cards{display:flex;gap:.5rem;margin-bottom:1.5rem}
@@ -637,7 +634,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   ${
     prev
       ? `<div class="run-panel">
-    <div class="run-label prev">previous run</div>
+    <div class="run-label">previous run</div>
     <div class="run-date">${new Date(prev.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(prev.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
     <div class="run-body">
       <div class="pie-svg-wrap" style="width:90px;height:90px">
@@ -662,7 +659,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
       : ''
   }
   <div class="run-panel">
-    <div class="run-label cur">current run</div>
+    <div class="run-label">current run</div>
     <div class="run-date">${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</div>
     <div class="run-body">
       <div class="pie-svg-wrap">
@@ -707,7 +704,7 @@ td{padding:.6rem 1rem;border-bottom:1px solid rgba(34,197,94,.1);vertical-align:
   ${tabPanelsHtml}
 </div>
 
-<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ give me to the top</button>
+<button class="scroll-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ lift me up</button>
 
 </div>
 <script>
